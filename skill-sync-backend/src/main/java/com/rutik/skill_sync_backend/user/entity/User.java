@@ -2,13 +2,17 @@ package com.rutik.skill_sync_backend.user.entity;
 
 import com.rutik.skill_sync_backend.session.entity.Session;
 import com.rutik.skill_sync_backend.skill.entity.UserSkill;
+import com.rutik.skill_sync_backend.user.enums.ExperienceLevel;
+import com.rutik.skill_sync_backend.user.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
 
 import jakarta.persistence.*;
         import lombok.*;
-        import java.util.*;
+
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Entity
 @Table(name = "users")
@@ -32,13 +36,25 @@ public class User {
 
     private String bio;
 
-    private String experienceLevel; // Beginner, Intermediate, Expert
+    @Enumerated(EnumType.STRING)
+    private ExperienceLevel experienceLevel;// Beginner, Intermediate, Expert
 
     private Double rating = 0.0;
 
     private Integer completedSessions = 0;
 
-    private Boolean isActive = true;
+    // Security fields (IMPORTANT 🔥) for admin
+    private boolean isActive = true;
+    private boolean isVerified = false; // email verification
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
+    // Audit fields (industry standard)
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    private Integer tokenVersion = 0;
 
     // 🔹 Many-to-Many via join table
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
