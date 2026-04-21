@@ -22,9 +22,10 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     private final RefreshTokenRepository repo;
 
     @Override
+    @Transactional
     public RefreshToken createToken(User user) {
 
-        repo.deleteByUser(user); // single session
+        repo.revokeAllByUser(user); // 🔥 better than delete
 
         RefreshToken token = RefreshToken.builder()
                 .token(UUID.randomUUID().toString())

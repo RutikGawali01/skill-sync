@@ -24,6 +24,11 @@ public class CookieUtil {
     }
 
     public String extract(HttpServletRequest req) {
+
+        if (req.getCookies() == null) {
+            throw new UnauthorizedException("No cookies present");
+        }
+
         return Arrays.stream(req.getCookies())
                 .filter(c -> c.getName().equals("refreshToken"))
                 .findFirst()

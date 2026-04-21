@@ -1,5 +1,6 @@
 package com.rutik.skill_sync_backend.session.entity;
 
+import com.rutik.skill_sync_backend.session.enums.SessionStatus;
 import com.rutik.skill_sync_backend.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -8,7 +9,6 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
         import lombok.*;
-import org.springframework.web.bind.support.SessionStatus;
 
 import java.time.LocalDateTime;
 

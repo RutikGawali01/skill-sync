@@ -29,10 +29,9 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<AuthResponse>> register(
-            @RequestBody RegisterRequest request,
+            @Valid @RequestBody RegisterRequest request,
             HttpServletResponse response
     ) {
-
         AuthResponse auth = service.register(request);
         cookieUtil.add(response, auth.getRefreshToken());
 

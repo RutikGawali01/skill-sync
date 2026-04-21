@@ -1,5 +1,7 @@
 package com.rutik.skill_sync_backend.skill.entity;
 
+import com.rutik.skill_sync_backend.skill.enums.SkillLevel;
+import com.rutik.skill_sync_backend.skill.enums.SkillType;
 import com.rutik.skill_sync_backend.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -29,9 +31,16 @@ public class UserSkill {
     @JoinColumn(name = "skill_id")
     private Skill skill;
 
-    private String type;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private SkillType type;
     // OFFER / WANT
 
-    private String level;
+    @Column(nullable = false)
+    private Boolean isVisible = true;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private SkillLevel level;
     // Beginner / Intermediate / Expert
 }

@@ -1,13 +1,14 @@
 package com.rutik.skill_sync_backend.auth.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.*;
 
 @Getter
+@Setter
 @AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class AuthResponse {
 
     private String accessToken;
-
-    private String refreshToken; // optional to return (cookie already set)
+    private String refreshToken;
 }

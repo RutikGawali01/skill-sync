@@ -4,11 +4,15 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+import lombok.*;
+
+        import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class ApiResponse<T> {
 
     private boolean success;
@@ -16,6 +20,7 @@ public class ApiResponse<T> {
     private T data;
     private LocalDateTime timestamp;
 
+    // ✅ SUCCESS WITH DATA
     public static <T> ApiResponse<T> success(String message, T data) {
         return ApiResponse.<T>builder()
                 .success(true)
@@ -25,6 +30,7 @@ public class ApiResponse<T> {
                 .build();
     }
 
+    // ✅ SUCCESS WITHOUT DATA
     public static <T> ApiResponse<T> success(String message) {
         return success(message, null);
     }

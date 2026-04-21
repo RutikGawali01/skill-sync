@@ -1,15 +1,15 @@
 package com.rutik.skill_sync_backend.auth.service;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.rutik.skill_sync_backend.auth.dto.AuthResponse;
 import com.rutik.skill_sync_backend.auth.dto.GoogleAuthRequest;
 import com.rutik.skill_sync_backend.auth.entity.RefreshToken;
 import com.rutik.skill_sync_backend.user.entity.User;
+import com.rutik.skill_sync_backend.user.enums.AuthProvider;
 import com.rutik.skill_sync_backend.user.enums.Role;
 import com.rutik.skill_sync_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -18,28 +18,34 @@ public class OAuthServiceImpl implements OAuthService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
+    private final GoogleTokenVerifier googleTokenVerifier; // ✅ FIXED
 
     @Override
     public AuthResponse handleGoogleLogin(GoogleAuthRequest request) {
 
-        // 🔥 In real production → verify Google ID token (skip for now)
+        // ✅ VERIFY TOKEN
+        GoogleIdToken.Payload payload =
+                googleTokenVerifier.verify(request.getIdToken());
 
-        User user = userRepository.findByEmail(request.getEmail())
+        String email = payload.getEmail();
+        String name = (String) payload.get("name");
+
+        User user = userRepository.findByEmail(email)
                 .orElseGet(() -> {
                     User newUser = User.builder()
-                            .email(request.getEmail())
-                            .name(request.getName())
+                            .email(email)
+                            .name(name)
                             .role(Role.USER)
-                            .isVerified(true) // ✅ Google verified
+                            .provider(AuthProvider.GOOGLE)
+                            .isVerified(true)
                             .isActive(true)
                             .tokenVersion(0)
-                            .createdAt(LocalDateTime.now())
                             .build();
 
                     return userRepository.save(newUser);
                 });
 
-        // increment token version (new session)
+        // 🔥 NEW SESSION
         user.setTokenVersion(user.getTokenVersion() + 1);
         userRepository.save(user);
 

@@ -5,14 +5,14 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-
 @Entity
+@Table(name = "refresh_tokens",
+        indexes = @Index(name = "idx_token", columnList = "token"))
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "refresh_tokens")
 public class RefreshToken {
 
     @Id
@@ -27,7 +27,6 @@ public class RefreshToken {
 
     private boolean revoked;
 
-    // 🔥 IMPORTANT: Proper relationship
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

@@ -16,6 +16,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 import org.springframework.security.core.userdetails.UserDetails;
@@ -47,7 +48,6 @@ public class AuthServiceImpl implements AuthService {
                 .name(request.getName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .experienceLevel(request.getExperienceLevel())
                 .bio(request.getBio())
                 .role(Role.USER)
                 .tokenVersion(0)
@@ -72,13 +72,14 @@ public class AuthServiceImpl implements AuthService {
                             request.getPassword()
                     )
             );
-        } catch (Exception e) {
-            throw new UnauthorizedException("Invalid credentials");
+        } catch (BadCredentialsException ex) {
+            throw new UnauthorizedException("Invalid email or password");
         }
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
+        // 🔥 invalidate old tokens
         user.setTokenVersion(user.getTokenVersion() + 1);
         userRepository.save(user);
 
@@ -104,7 +105,15 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void logout(String token) {
-        refreshService.revokeByToken(token);
+
+        RefreshToken rt = refreshService.verify(token);
+
+        // 🔥 invalidate ALL sessions
+        User user = rt.getUser();
+        user.setTokenVersion(user.getTokenVersion() + 1);
+        userRepository.save(user);
+
+        refreshService.revokeAllUserTokens(user);
     }
 
     // 🔥 common method

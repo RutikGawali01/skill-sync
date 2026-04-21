@@ -22,5 +22,5 @@ public class RegisterRequest {
 
     private String bio;
 
-    private ExperienceLevel experienceLevel;
+
 }

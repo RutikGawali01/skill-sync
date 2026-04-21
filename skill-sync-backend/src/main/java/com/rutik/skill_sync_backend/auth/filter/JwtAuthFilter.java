@@ -1,19 +1,19 @@
 package com.rutik.skill_sync_backend.auth.filter;
 
+
 import com.rutik.skill_sync_backend.auth.service.JwtService;
 import com.rutik.skill_sync_backend.common.exception.UnauthorizedException;
 import com.rutik.skill_sync_backend.user.entity.User;
 import com.rutik.skill_sync_backend.user.repository.UserRepository;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -51,7 +51,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().getAuthentication() == null) {
 
                 User user = userRepository.findByIdAndIsActiveTrue(userId)
-                        .orElseThrow(() -> new UnauthorizedException("User not found or inactive"));
+                        .orElseThrow(() -> new UnauthorizedException("User not found"));
 
                 if (jwtService.isValid(token, user)) {
 
@@ -59,7 +59,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                             new UsernamePasswordAuthenticationToken(
                                     user,
                                     null,
-                                    List.of(new SimpleGrantedAuthority(user.getRole().name()))
+                                    List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
                             );
 
                     authToken.setDetails(
@@ -71,7 +71,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
 
         } catch (Exception ex) {
-            // 🔥 Do NOT break request → let global handler manage
             SecurityContextHolder.clearContext();
         }
 

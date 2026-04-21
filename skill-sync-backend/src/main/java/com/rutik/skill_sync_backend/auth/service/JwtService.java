@@ -28,7 +28,7 @@ public class JwtService {
         return Jwts.builder()
                 .subject(user.getId().toString())
                 .claim("email", user.getEmail())
-                .claim("role", user.getRole().name())
+                .claim("role", user.getRole().name()) // ok
                 .claim("tokenVersion", user.getTokenVersion())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expiration))
