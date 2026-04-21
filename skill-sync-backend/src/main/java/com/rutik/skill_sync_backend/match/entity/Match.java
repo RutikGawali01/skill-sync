@@ -11,29 +11,38 @@ import lombok.*;
 import jakarta.persistence.*;
         import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
-@Table(name = "matches")
+@Table(name = "matches",
+        indexes = {
+                @Index(name = "idx_user_a", columnList = "userA_id"),
+                @Index(name = "idx_user_b", columnList = "userB_id")
+        })
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Match {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    // A <-> B match
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "userA_id", nullable = false)
     private User userA;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "userB_id", nullable = false)
     private User userB;
 
-    private String skillOfferedByA;
-    private String skillWantedByA;
+    // Matching Score
+    @Column(nullable = false)
+    private Double score;
 
-    private Double matchScore;
-
-    private String status; // FOUND, CONNECTED, REJECTED
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
 }
