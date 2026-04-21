@@ -10,6 +10,7 @@ import jakarta.servlet.http.*;
 
 import lombok.RequiredArgsConstructor;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -23,6 +24,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
@@ -34,24 +36,34 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
+        log.info("🔐 JWT Filter triggered for: {}", request.getRequestURI());
+
         final String authHeader = request.getHeader("Authorization");
 
         // 🔹 No token → skip
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            log.warn("❌ No Bearer token found");
             filterChain.doFilter(request, response);
             return;
         }
 
         try {
             String token = authHeader.substring(7);
+            log.info("✅ Token extracted");
 
             Long userId = jwtService.extractUserId(token);
+            log.info("👤 Extracted userId: {}", userId);
 
             if (userId != null &&
                     SecurityContextHolder.getContext().getAuthentication() == null) {
 
                 User user = userRepository.findByIdAndIsActiveTrue(userId)
-                        .orElseThrow(() -> new UnauthorizedException("User not found"));
+                        .orElseThrow(() -> {
+                            log.error("❌ User not found or inactive for ID: {}", userId);
+                            return new UnauthorizedException("User not found");
+                        });
+
+                log.info("✅ User found: {}", user.getEmail());
 
                 if (jwtService.isValid(token, user)) {
 
@@ -67,10 +79,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     );
 
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                    log.info("✅ Authentication SUCCESS for userId: {}", userId);
+                } else {
+                    log.error("❌ Token validation FAILED");
                 }
             }
 
         } catch (Exception ex) {
+            log.error("❌ JWT Exception: {}", ex.getMessage(), ex);
             SecurityContextHolder.clearContext();
         }
 

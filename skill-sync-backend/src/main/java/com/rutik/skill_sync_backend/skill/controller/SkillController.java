@@ -22,17 +22,17 @@ public class SkillController {
         return 1L;
     }
 
-    @PostMapping
-    public ResponseEntity<String> addSkill(@RequestBody AddSkillRequestDTO request) {
-        skillService.addSkill(request);
-        return ResponseEntity.ok("Skill added");
-    }
+//    @PostMapping
+//    public ResponseEntity<String> addSkill(@RequestBody AddSkillRequestDTO request) {
+//        skillService.addSkill(request);
+//        return ResponseEntity.ok("Skill added");
+//    }
 
-    @PostMapping("/user")
-    public ResponseEntity<String> addUserSkill(@RequestBody AddUserSkillRequestDTO request) {
-        skillService.addUserSkill(getUserId(), request);
-        return ResponseEntity.ok("User skill added");
-    }
+//    @PostMapping("/user")
+//    public ResponseEntity<String> addUserSkill(@RequestBody AddUserSkillRequestDTO request) {
+//        skillService.addUserSkill(getUserId(), request);
+//        return ResponseEntity.ok("User skill added");
+//    }
 
     @GetMapping("/user")
     public ResponseEntity<List<UserSkillResponseDTO>> getUserSkills() {

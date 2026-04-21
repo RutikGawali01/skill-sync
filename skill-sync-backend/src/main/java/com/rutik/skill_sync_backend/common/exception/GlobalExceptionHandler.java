@@ -33,6 +33,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) {
 
+        ex.printStackTrace(); // 🔥 THIS WILL REVEAL EVERYTHING
+
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ErrorResponse.of("Something went wrong", "INTERNAL_ERROR"));
     }

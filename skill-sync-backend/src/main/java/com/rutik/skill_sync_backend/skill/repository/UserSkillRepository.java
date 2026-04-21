@@ -1,13 +1,19 @@
 package com.rutik.skill_sync_backend.skill.repository;
 
 import com.rutik.skill_sync_backend.skill.entity.UserSkill;
+import com.rutik.skill_sync_backend.skill.enums.SkillType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UserSkillRepository extends JpaRepository<UserSkill, Long> {
 
     List<UserSkill> findByUserId(Long userId);
 
-    boolean existsByUserIdAndSkillIdAndType(Long userId, Long skillId, Enum type);
+    List<UserSkill> findByUserIdAndType(Long userId, SkillType type);
+
+    Optional<UserSkill> findByUserIdAndSkillIdAndType(Long userId, Long skillId, SkillType type);
+
+    void deleteByUserIdAndSkillIdAndType(Long userId, Long skillId, SkillType type);
 }

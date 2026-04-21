@@ -38,16 +38,13 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // 🔓 PUBLIC APIs
-                        .requestMatchers(
-                                "/api/auth/**"
-                        ).permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
 
-                        // 🔐 ADMIN APIs
-                        .requestMatchers("/api/admin/**")
-                        .hasRole("ADMIN")
+                        // ✅ Allow USER role also
+                        .requestMatchers("/api/users/**").hasAnyRole("USER", "ADMIN")
 
-                        // 🔐 ALL OTHER APIs REQUIRE AUTH
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
                         .anyRequest().authenticated()
                 )
 

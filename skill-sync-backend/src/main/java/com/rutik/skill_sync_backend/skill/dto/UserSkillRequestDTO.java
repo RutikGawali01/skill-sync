@@ -2,16 +2,22 @@ package com.rutik.skill_sync_backend.skill.dto;
 
 import com.rutik.skill_sync_backend.skill.enums.SkillLevel;
 import com.rutik.skill_sync_backend.skill.enums.SkillType;
-import lombok.Builder;
-import lombok.Data;
+import jakarta.validation.constraints.NotNull;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class UserSkillResponseDTO {
+public class UserSkillRequestDTO {
 
-    private Long id;
+    @NotNull
     private Long skillId;
-    private String skillName;
+
+    @NotNull
     private SkillType type;
+
+    @NotNull
     private SkillLevel level;
 }

@@ -36,8 +36,8 @@ public class UserSkill {
     private SkillType type;
     // OFFER / WANT
 
-    @Column(nullable = false)
-    private Boolean isVisible = true;
+    @Column(name = "is_visible", nullable = false)
+    private Boolean isVisible = true; // ✅ DEFAULT VALUE
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
