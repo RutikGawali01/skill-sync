@@ -28,10 +28,25 @@ public class OAuthServiceImpl implements OAuthService {
                 googleTokenVerifier.verify(request.getIdToken());
 
         String email = payload.getEmail();
-        String name = (String) payload.get("name");
+        String name = (String) payload.getOrDefault("name", "User");
+
+        // ✅ CHECK EMAIL VERIFIED
+        if (!Boolean.TRUE.equals(payload.getEmailVerified())) {
+            throw new RuntimeException("Email not verified by Google");
+        }
 
         User user = userRepository.findByEmail(email)
+                .map(existingUser -> {
+
+                    // ✅ PROVIDER CHECK
+                    if (existingUser.getProvider() != AuthProvider.GOOGLE) {
+                        throw new RuntimeException("Please login using email/password");
+                    }
+
+                    return existingUser;
+                })
                 .orElseGet(() -> {
+                    // ✅ CREATE NEW USER
                     User newUser = User.builder()
                             .email(email)
                             .name(name)
@@ -45,7 +60,7 @@ public class OAuthServiceImpl implements OAuthService {
                     return userRepository.save(newUser);
                 });
 
-        // 🔥 NEW SESSION
+        // 🔥 NEW SESSION (invalidate old tokens)
         user.setTokenVersion(user.getTokenVersion() + 1);
         userRepository.save(user);
 

@@ -8,16 +8,19 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
+
 @Component
 public class CookieUtil {
+
+    private final boolean isProd = false; // change via env
 
     public void add(HttpServletResponse res, String token) {
         ResponseCookie cookie = ResponseCookie.from("refreshToken", token)
                 .httpOnly(true)
-                .secure(true) // 🔥 prod
-                .path("/api/auth")
+                .secure(isProd)
+                .path("/")
                 .maxAge(7 * 24 * 60 * 60)
-                .sameSite("Strict")
+                .sameSite(isProd ? "None" : "Lax")
                 .build();
 
         res.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
@@ -26,20 +29,23 @@ public class CookieUtil {
     public String extract(HttpServletRequest req) {
 
         if (req.getCookies() == null) {
-            throw new UnauthorizedException("No cookies present");
+            return null;
         }
 
         return Arrays.stream(req.getCookies())
                 .filter(c -> c.getName().equals("refreshToken"))
                 .findFirst()
-                .orElseThrow(() -> new UnauthorizedException("No token"))
-                .getValue();
+                .map(c -> c.getValue())
+                .orElse(null);
     }
 
     public void clear(HttpServletResponse res) {
         ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
-                .path("/api/auth")
+                .httpOnly(true)
+                .secure(isProd)
+                .path("/")
                 .maxAge(0)
+                .sameSite(isProd ? "None" : "Lax")
                 .build();
 
         res.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());

@@ -16,11 +16,11 @@ public class GoogleTokenVerifier {
 
     public GoogleTokenVerifier(@Value("${google.client-id}") String clientId) {
 
-        this.verifier = new GoogleIdTokenVerifier.Builder(
-                new NetHttpTransport(),
-                JacksonFactory.getDefaultInstance()
-        )
-                .setAudience(Collections.singletonList(clientId))
+        NetHttpTransport transport = new NetHttpTransport();
+        JacksonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+
+        this.verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
+                .setAudience(Collections.singletonList(clientId)) // ✅ IMPORTANT
                 .build();
     }
 
