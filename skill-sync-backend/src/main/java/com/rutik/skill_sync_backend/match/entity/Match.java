@@ -1,5 +1,6 @@
 package com.rutik.skill_sync_backend.match.entity;
 
+import com.rutik.skill_sync_backend.match.enums.MatchType;
 import com.rutik.skill_sync_backend.user.entity.User;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -42,6 +43,11 @@ public class Match {
     // Matching Score
     @Column(nullable = false)
     private Double score;
+
+    @Enumerated(EnumType.STRING)
+    private MatchType type; // PERFECT_EXCHANGE, PARTIAL
+
+    private Boolean mutual;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;

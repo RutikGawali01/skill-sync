@@ -25,7 +25,8 @@ public class Review {
     @JoinColumn(name = "session_id")
     private Session session;
 
-    private int rating;
 
+    private Integer rating;
     private String feedback;
+
 }

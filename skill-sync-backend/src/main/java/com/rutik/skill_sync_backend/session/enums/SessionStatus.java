@@ -3,7 +3,8 @@ package com.rutik.skill_sync_backend.session.enums;
 public enum SessionStatus {
     PENDING,
     ACCEPTED,
-    REJECTED,
+    SCHEDULED,
     COMPLETED,
-    CANCELLED
+    CANCELLED,
+    REJECTED
 }

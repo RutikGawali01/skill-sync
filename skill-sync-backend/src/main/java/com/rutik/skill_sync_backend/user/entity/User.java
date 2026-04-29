@@ -2,9 +2,7 @@ package com.rutik.skill_sync_backend.user.entity;
 
 import com.rutik.skill_sync_backend.session.entity.Session;
 import com.rutik.skill_sync_backend.skill.entity.UserSkill;
-import com.rutik.skill_sync_backend.user.enums.AuthProvider;
-import com.rutik.skill_sync_backend.user.enums.ExperienceLevel;
-import com.rutik.skill_sync_backend.user.enums.Role;
+import com.rutik.skill_sync_backend.user.enums.*;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -38,10 +36,6 @@ public class User {
     @Column(length = 1000)
     private String bio;
 
-    private Double rating = 0.0;
-
-    private Integer completedSessions = 0;
-
     // Security fields (IMPORTANT 🔥) for admin
     private boolean isActive = true;
     private boolean isVerified = false; // email verification
@@ -74,19 +68,60 @@ public class User {
 
     private Integer tokenVersion = 0;
 
-    private Boolean isProfileComplete = false;
 
-    // 🔹 Many-to-Many via join table
-    @JsonIgnore
+// 🔗 RELATIONS
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<UserSkill> userSkills;
 
-    @JsonIgnore
+    @OneToMany(mappedBy = "user")
+    private List<Availability> availabilities;
+
     @OneToMany(mappedBy = "requester")
     private List<Session> requestedSessions;
 
-    @JsonIgnore
     @OneToMany(mappedBy = "provider")
     private List<Session> providedSessions;
+
+    private String location;
+    private String timezone;
+
+    // 🧠 MATCHING PREFERENCES (from repo)
+    @Enumerated(EnumType.STRING)
+    private LearningGoal learningGoal;
+
+    @Enumerated(EnumType.STRING)
+    private GoalTimeline goalTimeline;
+
+    @Enumerated(EnumType.STRING)
+    private TeachingMotivation teachingMotivation;
+
+    @ElementCollection(targetClass = TeachingApproach.class)
+    @Enumerated(EnumType.STRING)
+    private List<TeachingApproach> teachingApproaches;
+
+    @Enumerated(EnumType.STRING)
+    private LearningMethod preferredLearningMethod;
+
+    @Enumerated(EnumType.STRING)
+    private CommunicationPace communicationPace;
+
+    private String preferredLanguage;
+
+    @Enumerated(EnumType.STRING)
+    private DomainFocus domainFocus;
+
+    private Integer hoursPerWeek;
+
+    // ⭐ SYSTEM METRICS
+    private Double rating = 0.0;
+
+    private Integer completedSessions = 0;
+
+    private Boolean isProfileComplete = false;
+
+    // 🏆 GAMIFICATION
+    private Integer points = 0;
+    private Integer level = 1;
 
 }

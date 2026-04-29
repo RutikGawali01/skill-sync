@@ -10,6 +10,8 @@ import lombok.*;
 import jakarta.persistence.*;
         import lombok.*;
 
+import java.time.LocalDate;
+
 @Entity
 @Table(name = "user_skills")
 @Getter
@@ -43,4 +45,17 @@ public class UserSkill {
     @Column(nullable = false)
     private SkillLevel level;
     // Beginner / Intermediate / Expert
+
+    private Integer yearsOfExperience;
+    private Integer projectsCompleted;
+    private Integer selfRating;
+
+    private Boolean willingToTeach;
+
+    private LocalDate lastUsedDate;
+
+    // 🔥 Verification
+    private Boolean isVerified = false;
+    private Double testScore;
+    private Double certificationScore;
 }

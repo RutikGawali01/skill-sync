@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { googleAuth } from '../../services/authService';
 import { setAuth } from '../../redux/authSlice';
 import { tokenService, decodeToken } from '../../utils/tokenUtils';
@@ -41,20 +41,14 @@ if (!GOOGLE_CLIENT_ID) {
  *  - http://localhost:5173 must be in "Authorised JavaScript origins" in Google Cloud Console
  *  - GIS script tag in index.html: <script src="https://accounts.google.com/gsi/client" async defer>
  */
-/**
- * GoogleAuthButton
- *
- * Props:
- *   label    — button text hint ("Continue with Google" vs "Sign up with Google")
- *   onError  — optional callback(message: string) called when POST /auth/google fails.
- *              The parent component owns the error display so it can react contextually
- *              (e.g. highlight the email/password section when auth provider mismatch).
- */
-const GoogleAuthButton = ({ label, onError }) => {
-  const dispatch     = useDispatch();
-  const navigate     = useNavigate();
+const GoogleAuthButton = ({ label }) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const containerRef = useRef(null);
-  const initialised  = useRef(false);
+  const initialised = useRef(false);
+  const [error, setError] = useState('');
+  const [scriptLoaded, setScriptLoaded] = useState(() => Boolean(window.google?.accounts?.id));
+  const [scriptFailed, setScriptFailed] = useState(false);
 
   // Show a clear dev error card instead of rendering a broken button
   if (!GOOGLE_CLIENT_ID) {
@@ -72,24 +66,24 @@ const GoogleAuthButton = ({ label, onError }) => {
    * silently break auth after the component re-renders.
    */
   const handleCredentialResponse = useCallback(async (credentialResponse) => {
+    setError('');
     try {
       const res = await googleAuth(credentialResponse.credential);
       const { accessToken } = res.data.data;
 
+      // 1. Persist token to localStorage via tokenService abstraction
       tokenService.set(accessToken);
+      // 2. Decode JWT payload { id, email, role } and hydrate Redux
       const user = decodeToken(accessToken);
       dispatch(setAuth({ token: accessToken, user }));
+      // 3. Navigate to the protected dashboard
       navigate('/skills');
     } catch (err) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.response?.data?.error   ||
-        'Google sign-in failed. Please try again.';
-      console.error('[GoogleAuthButton] OAuth error:', err?.response?.status, msg);
-      // Bubble the error up to the parent (LoginForm / RegisterForm)
-      onError?.(msg);
+      const msg = 'Google sign-in failed. Please try again.';
+      console.error('[GoogleAuthButton] OAuth error:', msg);
+      setError(msg);
     }
-  }, [dispatch, navigate, onError]);
+  }, [dispatch, navigate]);
 
   const initGIS = useCallback(() => {
     if (initialised.current || !containerRef.current || !window.google?.accounts?.id) return;
@@ -97,41 +91,55 @@ const GoogleAuthButton = ({ label, onError }) => {
 
     window.google.accounts.id.initialize({
       client_id: GOOGLE_CLIENT_ID,   // must never be undefined — guarded above
-      callback:  handleCredentialResponse,
-      ux_mode:   'popup',            // popup flow, NOT redirect
+      callback: handleCredentialResponse,
+      ux_mode: 'popup',            // popup flow, NOT redirect
     });
 
     window.google.accounts.id.renderButton(containerRef.current, {
-      theme:          'outline',
-      size:           'large',
-      type:           'standard',
-      shape:          'rectangular',
+      theme: 'outline',
+      size: 'large',
+      type: 'standard',
+      shape: 'rectangular',
       logo_alignment: 'left',
-      text:  label?.toLowerCase().includes('sign up') ? 'signup_with' : 'continue_with',
+      text: label?.toLowerCase().includes('sign up') ? 'signup_with' : 'continue_with',
       width: containerRef.current.offsetWidth || 400,
     });
   }, [handleCredentialResponse, label]);
 
   useEffect(() => {
-    // If the GIS script has already loaded by the time this component mounts
+    // Already loaded before mount (e.g. hot reload)
     if (window.google?.accounts?.id) {
+      setScriptLoaded(true);
       initGIS();
       return;
     }
 
-    // GIS script loads with `async defer` in index.html — poll until available
+    // GIS script loads with `async defer` — poll until available
     const timer = setInterval(() => {
       if (window.google?.accounts?.id) {
         clearInterval(timer);
+        clearTimeout(timeout);
+        setScriptLoaded(true);
         initGIS();
       }
     }, 100);
 
-    return () => clearInterval(timer);
+    // Safety net: if Google's script hasn't loaded in 8s, show error
+    const timeout = setTimeout(() => {
+      clearInterval(timer);
+      if (!window.google?.accounts?.id) {
+        setScriptFailed(true);
+      }
+    }, 8000);
+
+    return () => {
+      clearInterval(timer);
+      clearTimeout(timeout);
+    };
   }, [initGIS]);
 
   return (
-    <div className="w-full">
+    <div className="w-full space-y-2">
       {/* GIS SDK renders its own pixel-perfect button inside this div */}
       <div
         ref={containerRef}
@@ -140,11 +148,27 @@ const GoogleAuthButton = ({ label, onError }) => {
         style={{ minHeight: '44px' }}
       />
 
-      {/* Spinner shown while the GIS SDK script is still loading */}
-      {!window.google?.accounts?.id && (
+      {/* Spinner: only while waiting for GIS script — disappears once loaded */}
+      {!scriptLoaded && !scriptFailed && (
         <div className="flex items-center justify-center gap-2 text-gray-400 text-sm py-2">
           <Loader2 className="w-4 h-4 animate-spin" />
           Loading Google Sign-In…
+        </div>
+      )}
+
+      {/* Shown if Google's script fails to load after 8 seconds */}
+      {scriptFailed && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 text-xs">
+          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+          Google Sign-In failed to load. Check your internet connection or disable any ad blocker.
+        </div>
+      )}
+
+      {/* Error banner shown if POST /auth/google fails */}
+      {error && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-xs">
+          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+          {error}
         </div>
       )}
     </div>

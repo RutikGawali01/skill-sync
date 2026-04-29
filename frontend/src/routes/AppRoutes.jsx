@@ -5,6 +5,7 @@ import HomePage from '../pages/home/HomePage';
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
 import SkillsPage from '../pages/skills/SkillsPage';
+import ProfilePage from '../pages/ProfilePage';
 
 // Placeholder pages — replace with real components as they are built
 const Placeholder = ({ label }) => (
@@ -35,7 +36,7 @@ const AppRoutes = () => (
           <Route path="/skills"        element={<SkillsPage />} />
           <Route path="/matches"       element={<Placeholder label="Matches Page" />} />
           <Route path="/chat"          element={<Placeholder label="Chat" />} />
-          <Route path="/profile"       element={<Placeholder label="My Profile" />} />
+          <Route path="/profile"       element={<ProfilePage />} />
           <Route path="/notifications" element={<Placeholder label="Notifications" />} />
         </Route>
       </Route>
