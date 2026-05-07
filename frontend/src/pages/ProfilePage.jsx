@@ -34,7 +34,7 @@ import ProfileHeader, { ProfileHeaderSkeleton } from '../components/profile/Prof
 import ProfileView from '../components/profile/ProfileView';
 import ProfileEditForm from '../components/profile/ProfileEditForm';
 import ProfileStats, { ProfileStatsSkeleton } from '../components/profile/ProfileStats';
-import ProfileSkills, { ProfileSkillsSkeleton } from '../components/profile/ProfileSkills';
+import SkillsSection, { SkillsSectionSkeleton } from '../components/profile/SkillsSection';
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 const ProfilePage = () => {
@@ -249,7 +249,7 @@ const ProfilePage = () => {
             <Divider
               label={
                 <Text size="xs" fw={600} style={{ color: dividerLabelColor, letterSpacing: '1px', textTransform: 'uppercase' }}>
-                  Skill Exchange
+                  ✦ Skills
                 </Text>
               }
               labelPosition="left"
@@ -257,12 +257,9 @@ const ProfilePage = () => {
               styles={{ root: { borderColor: dividerBorderColor } }}
             />
             {loading || !profile ? (
-              <ProfileSkillsSkeleton />
+              <SkillsSectionSkeleton />
             ) : (
-              <ProfileSkills
-                skillsOffered={profile.skillsOffered ?? []}
-                skillsWanted={profile.skillsWanted ?? []}
-              />
+              <SkillsSection isDark={isDark} />
             )}
           </Box>
 

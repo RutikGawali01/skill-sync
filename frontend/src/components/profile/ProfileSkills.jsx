@@ -5,7 +5,7 @@
  *
  * Each skill shows:
  *   - Skill name
- *   - Level pill (BEGINNER / INTERMEDIATE / EXPERT)
+ *   - Level pill (BEGINNER / INTERMEDIATE / ADVANCED)
  *
  * Props:
  *   skillsOffered : Array<{ name: string, level: string }>
@@ -17,9 +17,9 @@ import { IconBrain, IconSearch } from '@tabler/icons-react';
 
 // ── Level → style map ────────────────────────────────────────────────────────
 const LEVEL_CONFIG = {
-  BEGINNER: { label: 'Beginner', color: '#06b6d4', bg: 'rgba(6,182,212,0.12)', dot: '#06b6d4' },
+  BEGINNER:     { label: 'Beginner',     color: '#06b6d4', bg: 'rgba(6,182,212,0.12)',  dot: '#06b6d4' },
   INTERMEDIATE: { label: 'Intermediate', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', dot: '#f59e0b' },
-  EXPERT: { label: 'Expert', color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)', dot: '#8b5cf6' },
+  ADVANCED:     { label: 'Advanced',     color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)', dot: '#8b5cf6' },
 };
 
 // ── Individual Skill Card ────────────────────────────────────────────────────

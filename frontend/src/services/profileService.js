@@ -21,7 +21,7 @@ import api from './api';
 export const getMyProfile = async () => {
   const response = await api.get('/users');
   return response.data.data;
-};
+};  
 
 /**
  * Update the authenticated user's profile.

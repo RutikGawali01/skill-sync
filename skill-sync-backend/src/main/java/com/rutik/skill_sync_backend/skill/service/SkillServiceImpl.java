@@ -2,10 +2,7 @@ package com.rutik.skill_sync_backend.skill.service;
 
 import com.rutik.skill_sync_backend.common.exception.BadRequestException;
 import com.rutik.skill_sync_backend.common.exception.ResourceNotFoundException;
-import com.rutik.skill_sync_backend.skill.dto.AddSkillRequestDTO;
-import com.rutik.skill_sync_backend.skill.dto.AddUserSkillRequestDTO;
-import com.rutik.skill_sync_backend.skill.dto.UserSkillRequestDTO;
-import com.rutik.skill_sync_backend.skill.dto.UserSkillResponseDTO;
+import com.rutik.skill_sync_backend.skill.dto.*;
 import com.rutik.skill_sync_backend.skill.entity.Skill;
 import com.rutik.skill_sync_backend.skill.entity.UserSkill;
 import com.rutik.skill_sync_backend.skill.enums.SkillLevel;
@@ -21,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -30,76 +28,145 @@ public class SkillServiceImpl implements SkillService {
     private final SkillRepository skillRepository;
     private final UserSkillRepository userSkillRepository;
 
+    /**
+     * ✅ Add skill to current user
+     */
     @Override
-    public void addSkill(Long userId, UserSkillRequestDTO request) {
+    public UserSkillResponseDTO addSkill(
+            Long userId,
+            UserSkillRequestDTO request
+    ) {
 
+        log.info(
+                "➡️ addSkill called with userId: {} and request: {}",
+                userId,
+                request
+        );
 
-        log.info("➡️ addSkill called with userId: {} and request: {}", userId, request);
-
-        // 🔹 Fetch user
+        // ✅ Fetch user
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> {
-                    log.error("❌ User not found with id: {}", userId);
-                    return new ResourceNotFoundException("User not found");
+
+                    log.error(
+                            "❌ User not found with id: {}",
+                            userId
+                    );
+
+                    return new ResourceNotFoundException(
+                            "User not found"
+                    );
                 });
 
         log.info("✅ User found: {}", user.getEmail());
 
-        // 🔹 Fetch skill
+        // ✅ Fetch skill
         Skill skill = skillRepository.findById(request.getSkillId())
                 .orElseThrow(() -> {
-                    log.error("❌ Skill not found with id: {}", request.getSkillId());
-                    return new ResourceNotFoundException("Skill not found");
+
+                    log.error(
+                            "❌ Skill not found with id: {}",
+                            request.getSkillId()
+                    );
+
+                    return new ResourceNotFoundException(
+                            "Skill not found"
+                    );
                 });
 
         log.info("✅ Skill found: {}", skill.getName());
 
-        // 🔹 Check duplicate
-        userSkillRepository.findByUserIdAndSkillIdAndType(userId, skill.getId(), request.getType())
-                .ifPresent(us -> {
-                    log.error("❌ Duplicate skill detected for userId: {} skillId: {} type: {}",
-                            userId, skill.getId(), request.getType());
-                    throw new BadRequestException("Skill already added");
+        // ✅ Prevent duplicate skills
+        userSkillRepository
+                .findByUserIdAndSkillIdAndType(
+                        userId,
+                        skill.getId(),
+                        request.getType()
+                )
+                .ifPresent(existingSkill -> {
+
+                    log.error(
+                            "❌ Duplicate skill detected for userId: {} skillId: {} type: {}",
+                            userId,
+                            skill.getId(),
+                            request.getType()
+                    );
+
+                    throw new BadRequestException(
+                            "Skill already added"
+                    );
                 });
 
-        // 🔹 Create entity
+        // ✅ Create UserSkill entity
         UserSkill userSkill = UserSkill.builder()
                 .user(user)
                 .skill(skill)
                 .type(request.getType())
                 .level(request.getLevel())
-                .isVisible(true) // ✅ FIX
+                .isVisible(true)
                 .build();
 
-        log.info("💾 Saving UserSkill: {}", userSkill);
+        log.info("💾 Saving UserSkill");
 
-        userSkillRepository.save(userSkill);
+        // ✅ Save
+        UserSkill savedUserSkill =
+                userSkillRepository.save(userSkill);
 
-        log.info("✅ Skill successfully added for userId: {}", userId);
+        log.info(
+                "✅ Skill successfully added for userId: {}",
+                userId
+        );
+
+        // ✅ Return response DTO
+        return mapToDTO(savedUserSkill);
     }
 
-
+    /**
+     * ✅ Remove skill from user
+     */
     @Override
-    public void removeSkill(Long userId, Long skillId, SkillType type) {
+    public void removeSkill(
+            Long userId,
+            Long skillId,
+            SkillType type
+    ) {
 
-        log.info("➡️ Removing skill: userId={}, skillId={}, type={}", userId, skillId, type);
+        log.info(
+                "➡️ Removing skill: userId={}, skillId={}, type={}",
+                userId,
+                skillId,
+                type
+        );
 
         UserSkill userSkill = userSkillRepository
-                .findByUserIdAndSkillIdAndType(userId, skillId, type)
+                .findByUserIdAndSkillIdAndType(
+                        userId,
+                        skillId,
+                        type
+                )
                 .orElseThrow(() -> {
-                    log.error("❌ UserSkill NOT FOUND");
-                    return new ResourceNotFoundException("User skill not found");
-                });
 
-        log.info("✅ Found UserSkill: {}", userSkill.getId());
+                    log.error("❌ UserSkill not found");
+
+                    return new ResourceNotFoundException(
+                            "User skill not found"
+                    );
+                });
 
         userSkillRepository.delete(userSkill);
 
-        log.info("✅ Deleted successfully");
+        log.info("✅ Skill removed successfully");
     }
 
+    /**
+     * ✅ Get all skills of user
+     */
     @Override
     public List<UserSkillResponseDTO> getUserSkills(Long userId) {
+
+        log.info(
+                "➡️ Fetching all skills for userId: {}",
+                userId
+        );
 
         return userSkillRepository.findByUserId(userId)
                 .stream()
@@ -107,23 +174,76 @@ public class SkillServiceImpl implements SkillService {
                 .toList();
     }
 
+    /**
+     * ✅ Get user skills by type
+     * Example:
+     * OFFER / WANT
+     */
     @Override
-    public List<UserSkillResponseDTO> getUserSkillsByType(Long userId, SkillType type) {
+    public List<UserSkillResponseDTO> getUserSkillsByType(
+            Long userId,
+            SkillType type
+    ) {
 
-        return userSkillRepository.findByUserIdAndType(userId, type)
+        log.info(
+                "➡️ Fetching {} skills for userId: {}",
+                type,
+                userId
+        );
+
+        return userSkillRepository
+                .findByUserIdAndType(userId, type)
                 .stream()
                 .map(this::mapToDTO)
                 .toList();
     }
 
-    private UserSkillResponseDTO mapToDTO(UserSkill us) {
-        return UserSkillResponseDTO.builder()
-                .id(us.getId())
-                .skillId(us.getSkill().getId())
-                .skillName(us.getSkill().getName())
-                .type(us.getType())
-                .level(us.getLevel())
-                .build();
+    /**
+     * ✅ Get all available skills
+     * Used for searchable dropdown in frontend
+     */
+    @Override
+    public List<SkillResponseDTO> getAllSkills(String keyword) {
+
+        log.info(
+                "➡️ Fetching skills with keyword: {}",
+                keyword
+        );
+
+        List<Skill> skills;
+
+        // ✅ Fetch all skills
+        if (keyword == null || keyword.isBlank()) {
+
+            skills = skillRepository.findAll();
+
+        } else {
+
+            // ✅ Search skills
+            skills = skillRepository
+                    .findByNameContainingIgnoreCase(keyword);
+        }
+
+        return skills.stream()
+                .map(skill -> SkillResponseDTO.builder()
+                        .id(skill.getId())
+                        .name(skill.getName())
+                        .category(skill.getCategory())
+                        .build())
+                .toList();
     }
 
+    /**
+     * ✅ Mapper method
+     */
+    private UserSkillResponseDTO mapToDTO(UserSkill userSkill) {
+
+        return UserSkillResponseDTO.builder()
+                .id(userSkill.getId())
+                .skillId(userSkill.getSkill().getId())
+                .skillName(userSkill.getSkill().getName())
+                .type(userSkill.getType())
+                .level(userSkill.getLevel())
+                .build();
+    }
 }

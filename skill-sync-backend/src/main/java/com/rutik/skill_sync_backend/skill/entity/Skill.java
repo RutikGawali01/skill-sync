@@ -1,5 +1,6 @@
 package com.rutik.skill_sync_backend.skill.entity;
 
+import com.rutik.skill_sync_backend.skill.enums.SkillCategory;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -25,7 +26,8 @@ public class Skill {
 
     private String name;
 
-    private String category; // DSA, DevOps, Design
+    @Enumerated(EnumType.STRING)
+    private SkillCategory category; // DSA, DevOps, Design
 
     @OneToMany(mappedBy = "skill")
     private List<UserSkill> userSkills;

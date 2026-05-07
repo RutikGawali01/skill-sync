@@ -5,67 +5,84 @@ import com.rutik.skill_sync_backend.skill.dto.UserSkillRequestDTO;
 import com.rutik.skill_sync_backend.skill.dto.UserSkillResponseDTO;
 import com.rutik.skill_sync_backend.skill.enums.SkillType;
 import com.rutik.skill_sync_backend.skill.service.SkillService;
+import com.rutik.skill_sync_backend.user.entity.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/users/{userId}/skills")
+@RequestMapping("/api/users/skills")
 @RequiredArgsConstructor
 public class UserSkillController {
 
-    private final SkillService userSkillService;
+    private final SkillService skillService;
 
     // ✅ Add Skill
     @PostMapping
-    public ApiResponse<Void> addSkill(
-            @PathVariable Long userId,
-            @Valid @RequestBody UserSkillRequestDTO request
+    public ApiResponse<UserSkillResponseDTO> addSkill(
+            @Valid @RequestBody UserSkillRequestDTO request,
+            Authentication auth
     ) {
-        log.info("📥 Controller HIT → userId: {}, request: {}", userId, request);
 
-        userSkillService.addSkill(userId, request);
+        User user = (User) auth.getPrincipal();
 
-        log.info("📤 Skill added successfully");
+        UserSkillResponseDTO response =
+                skillService.addSkill(user.getId(), request);
 
-        return ApiResponse.success("Skill added successfully");
+        return ApiResponse.success(
+                "Skill added successfully",
+                response
+        );
     }
 
     // ✅ Remove Skill
     @DeleteMapping
     public ApiResponse<Void> removeSkill(
-            @PathVariable Long userId,
             @RequestParam Long skillId,
-            @RequestParam SkillType type
+            @RequestParam SkillType type,
+            Authentication auth
     ) {
-        userSkillService.removeSkill(userId, skillId, type);
-        return ApiResponse.success("Skill removed successfully");
+
+        User user = (User) auth.getPrincipal();
+
+        skillService.removeSkill(user.getId(), skillId, type);
+
+        return ApiResponse.success(
+                "Skill removed successfully"
+        );
     }
 
-    // ✅ Get All Skills
+    // ✅ Get Current User Skills
     @GetMapping
-    public ApiResponse<List<UserSkillResponseDTO>> getAllSkills(
-            @PathVariable Long userId
+    public ApiResponse<List<UserSkillResponseDTO>> getMySkills(
+            Authentication auth
     ) {
+
+        User user = (User) auth.getPrincipal();
+
         return ApiResponse.success(
                 "User skills fetched",
-                userSkillService.getUserSkills(userId)
+                skillService.getUserSkills(user.getId())
         );
     }
 
-    // ✅ Filter by type
+    // ✅ Filter Skills By Type
     @GetMapping("/filter")
     public ApiResponse<List<UserSkillResponseDTO>> getSkillsByType(
-            @PathVariable Long userId,
-            @RequestParam SkillType type
+            @RequestParam SkillType type,
+            Authentication auth
     ) {
+
+        User user = (User) auth.getPrincipal();
+
         return ApiResponse.success(
                 "Filtered skills fetched",
-                userSkillService.getUserSkillsByType(userId, type)
+                skillService.getUserSkillsByType(user.getId(), type)
         );
     }
-}
+}   
