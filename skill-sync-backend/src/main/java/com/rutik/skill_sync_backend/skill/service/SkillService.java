@@ -22,4 +22,6 @@ public interface SkillService {
 
     // ✅ Skill Catalog
     List<SkillResponseDTO> getAllSkills(String keyword);
+
+    List<ExploreSkillResponseDto> getExploreSkills();
 }

@@ -30,6 +30,7 @@ import {
   getUserSkills,
   addSkill,
   removeSkill,
+  getExploreSkills,
 } from '../services/skillService';
 
 // ── Async Thunks ──────────────────────────────────────────────────────────────
@@ -101,6 +102,20 @@ export const removeUserSkill = createAsyncThunk(
   }
 );
 
+/** Fetch the public explore feed — all offered skills across the platform. */
+export const fetchExploreSkills = createAsyncThunk(
+  'skills/fetchExploreSkills',
+  async (_, { rejectWithValue }) => {
+    try {
+      return await getExploreSkills();
+    } catch (err) {
+      return rejectWithValue(
+        err?.response?.data?.message || 'Failed to load explore skills'
+      );
+    }
+  }
+);
+
 // ── Slice ─────────────────────────────────────────────────────────────────────
 
 const skillSlice = createSlice({
@@ -108,11 +123,14 @@ const skillSlice = createSlice({
   initialState: {
     availableSkills: [],       // master catalog
     userSkills:      [],       // current user's skills
+    exploreSkills:   [],       // public explore feed
     loading:         false,    // user skills fetch
     catalogLoading:  false,    // catalog fetch
+    exploreLoading:  false,    // explore feed fetch
     adding:          false,
     removing:        null,     // skillId being removed (per-card spinner)
     error:           null,
+    exploreError:    null,
     selectedType:    'ALL',
   },
   reducers: {
@@ -183,6 +201,21 @@ const skillSlice = createSlice({
         state.removing = null;
         state.error    = action.payload;
       });
+
+    // ── fetchExploreSkills ───────────────────────────────────────────────────
+    builder
+      .addCase(fetchExploreSkills.pending, (state) => {
+        state.exploreLoading = true;
+        state.exploreError   = null;
+      })
+      .addCase(fetchExploreSkills.fulfilled, (state, action) => {
+        state.exploreLoading = false;
+        state.exploreSkills  = action.payload ?? [];
+      })
+      .addCase(fetchExploreSkills.rejected, (state, action) => {
+        state.exploreLoading = false;
+        state.exploreError   = action.payload;
+      });
   },
 });
 
@@ -192,8 +225,11 @@ export default skillSlice.reducer;
 // ── Selectors ─────────────────────────────────────────────────────────────────
 export const selectAvailableSkills  = (state) => state.skills.availableSkills;
 export const selectUserSkills       = (state) => state.skills.userSkills;
+export const selectExploreSkills    = (state) => state.skills.exploreSkills;
 export const selectSkillsLoading    = (state) => state.skills.loading;
 export const selectCatalogLoading   = (state) => state.skills.catalogLoading;
+export const selectExploreLoading   = (state) => state.skills.exploreLoading;
+export const selectExploreError     = (state) => state.skills.exploreError;
 export const selectSkillsAdding     = (state) => state.skills.adding;
 export const selectSkillsRemoving   = (state) => state.skills.removing;
 export const selectSkillsError      = (state) => state.skills.error;

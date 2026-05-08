@@ -24,4 +24,7 @@ public interface UserSkillRepository extends JpaRepository<UserSkill, Long> {
     AND us.type = :type
 """)
     List<UserSkill> findBySkillAndType(Long skillId, SkillType type);
+
+
+    List<UserSkill> findByType(SkillType type);
 }

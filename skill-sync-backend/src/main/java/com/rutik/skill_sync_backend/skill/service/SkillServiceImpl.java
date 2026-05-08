@@ -246,4 +246,56 @@ public class SkillServiceImpl implements SkillService {
                 .level(userSkill.getLevel())
                 .build();
     }
+
+    @Override
+    public List<ExploreSkillResponseDto> getExploreSkills() {
+
+        List<UserSkill> offeredSkills =
+                userSkillRepository.findByType(SkillType.OFFER);
+
+        return offeredSkills.stream()
+                .filter(userSkill -> Boolean.TRUE.equals(userSkill.getIsVisible()))
+                .map(this::mapToExploreDto)
+                .toList();
+    }
+
+    private ExploreSkillResponseDto mapToExploreDto(UserSkill userSkill) {
+
+        User user = userSkill.getUser();
+
+        return ExploreSkillResponseDto.builder()
+                .userSkillId(userSkill.getId())
+                .skillName(userSkill.getSkill().getName())
+                .skillLevel(userSkill.getLevel())
+                .category(userSkill.getSkill().getCategory().name())
+                .userId(user.getId())
+                .fullName(user.getName())
+                .profilePicture(user.getProfilePicUrl())
+                .rating(user.getRating())
+                .completedSessions(user.getCompletedSessions())
+                .wantsToLearn(getWantedSkills(user))
+                .build();
+    }
+
+    private List<String> getWantedSkills(User user) {
+
+        return user.getUserSkills().stream()
+
+                // Only WANT skills
+                .filter(skill -> skill.getType() == SkillType.WANT)
+
+                // Only visible skills
+                .filter(skill -> Boolean.TRUE.equals(skill.getIsVisible()))
+
+                // Convert to skill names
+                .map(skill -> skill.getSkill().getName())
+
+                // Avoid duplicate skill names
+                .distinct()
+
+                // Limit for clean UI
+                .limit(3)
+
+                .toList();
+    }
 }

@@ -85,4 +85,4 @@ public class UserSkillController {
                 skillService.getUserSkillsByType(user.getId(), type)
         );
     }
-}   
+}

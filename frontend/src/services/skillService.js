@@ -64,3 +64,17 @@ export const removeSkill = async (skillId, type) => {
   });
   return response.data.data;
 };
+
+// ── Explore Skills ────────────────────────────────────────────────────────────
+
+/**
+ * Fetch the public explore feed — skills offered by all users on the platform.
+ * @returns {Promise<ExploreSkillDTO[]>}
+ *   [{ userSkillId, skillName, skillLevel, category, userId,
+ *      fullName, profilePicture, rating, completedSessions, offersSkill }, ...]
+ */
+export const getExploreSkills = async () => {
+  const response = await api.get('/skills/explore');
+  return response.data.data;
+};
+
