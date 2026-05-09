@@ -11,6 +11,7 @@ import jakarta.persistence.*;
         import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "user_skills")
@@ -25,37 +26,54 @@ public class UserSkill {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
+    // ===============================
+    // RELATIONSHIPS
+    // ===============================
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne
-    @JoinColumn(name = "skill_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "skill_id", nullable = false)
     private Skill skill;
+
+    // ===============================
+    // SKILL INFO
+    // ===============================
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private SkillType type;
     // OFFER / WANT
 
-    @Column(name = "is_visible", nullable = false)
-    private Boolean isVisible = true; // ✅ DEFAULT VALUE
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private SkillLevel level;
-    // Beginner / Intermediate / Expert
+    // BEGINNER / INTERMEDIATE / ADVANCED
 
-    private Integer yearsOfExperience;
-    private Integer projectsCompleted;
-    private Integer selfRating;
+    @Column(name = "is_visible", nullable = false)
+    @Builder.Default
+    private Boolean isVisible = true;
 
-    private Boolean willingToTeach;
+    // ===============================
+    // VERIFICATION
+    // ===============================
 
-    private LocalDate lastUsedDate;
-
-    // 🔥 Verification
+    @Column(name = "is_verified", nullable = false)
+    @Builder.Default
     private Boolean isVerified = false;
-    private Double testScore;
-    private Double certificationScore;
+
+    @Column(name = "verification_score")
+    private Double verificationScore;
+
+    @Column(name = "verified_at")
+    private LocalDateTime verifiedAt;
+
+    @Column(name = "last_test_attempt_at")
+    private LocalDateTime lastTestAttemptAt;
+
+    @Column(name = "verification_attempts")
+    @Builder.Default
+    private Integer verificationAttempts = 0;
 }
