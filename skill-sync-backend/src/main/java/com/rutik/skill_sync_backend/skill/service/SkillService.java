@@ -24,4 +24,8 @@ public interface SkillService {
     List<SkillResponseDTO> getAllSkills(String keyword);
 
     List<ExploreSkillResponseDto> getExploreSkills();
+
+    List<VerifiedBadgeResponseDto> getVerifiedBadges(
+            Long userId
+    );
 }

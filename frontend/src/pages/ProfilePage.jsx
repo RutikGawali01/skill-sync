@@ -35,6 +35,9 @@ import ProfileView from '../components/profile/ProfileView';
 import ProfileEditForm from '../components/profile/ProfileEditForm';
 import ProfileStats, { ProfileStatsSkeleton } from '../components/profile/ProfileStats';
 import SkillsSection, { SkillsSectionSkeleton } from '../components/profile/SkillsSection';
+import VerifiedSkillsSection from '../components/profile/VerifiedSkillsSection';
+
+import { fetchVerifiedBadges } from '../redux/verificationSlice';
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 const ProfilePage = () => {
@@ -56,7 +59,8 @@ const ProfilePage = () => {
   // ── Fetch on mount ──────────────────────────────────────────────────────────
   useEffect(() => {
     fetchMyProfile();
-  }, [fetchMyProfile]);
+    dispatch(fetchVerifiedBadges());
+  }, [fetchMyProfile, dispatch]);
 
   // ── Handlers ────────────────────────────────────────────────────────────────
   const handleSave = async (dto) => {
@@ -243,6 +247,9 @@ const ProfilePage = () => {
               <ProfileStats profile={profile} />
             )}
           </Box>
+
+          {/* ── Verified Badges ── */}
+          <VerifiedSkillsSection isDark={isDark} />
 
           {/* ── Skills ── */}
           <Box>

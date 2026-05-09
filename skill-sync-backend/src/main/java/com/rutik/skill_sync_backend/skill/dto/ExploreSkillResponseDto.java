@@ -10,20 +10,45 @@ import java.util.List;
 @Builder
 public class ExploreSkillResponseDto {
 
+    // ==========================================
+    // USER SKILL ID
+    // ==========================================
+
     private Long userSkillId;
 
-    // Skill Info
+    // ==========================================
+    // SKILL INFO
+    // ==========================================
+
     private String skillName;
+
     private SkillLevel skillLevel;
+
     private String category;
 
-    // User Info
+    private Boolean isVerified;
+
+    // ==========================================
+    // USER INFO
+    // ==========================================
+
     private Long userId;
+
     private String fullName;
+
     private String profilePicture;
+
+    // ==========================================
+    // TRUST SIGNALS
+    // ==========================================
+
     private Double rating;
+
     private Integer completedSessions;
 
-    // Exchange Info
+    // ==========================================
+    // EXCHANGE CONTEXT
+    // ==========================================
+
     private List<String> wantsToLearn;
 }

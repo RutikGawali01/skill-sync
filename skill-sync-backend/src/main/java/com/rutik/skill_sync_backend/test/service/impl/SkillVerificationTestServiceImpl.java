@@ -257,6 +257,21 @@ public class SkillVerificationTestServiceImpl implements SkillVerificationTestSe
             userSkill.setVerificationScore(percentage);
 
             userSkill.setVerifiedAt(LocalDateTime.now());
+
+            // remove cooldown after successful verification
+            userSkill.setRetryAvailableAt(null);
+
+        } else {
+
+            // cooldown after failed verification
+            userSkill.setLastVerificationFailedAt(
+                    LocalDateTime.now()
+            );
+
+            userSkill.setRetryAvailableAt(
+                    LocalDateTime.now()
+                            .plusHours(retryHours)
+            );
         }
 
         log.info(
@@ -346,15 +361,12 @@ public class SkillVerificationTestServiceImpl implements SkillVerificationTestSe
             );
         }
 
-        if (userSkill.getLastTestAttemptAt() != null
-                && userSkill.getLastTestAttemptAt()
-                .plusHours(retryHours)
+        if (userSkill.getRetryAvailableAt() != null
+                && userSkill.getRetryAvailableAt()
                 .isAfter(LocalDateTime.now())) {
 
             throw new BadRequestException(
-                    "Retry available after "
-                            + retryHours
-                            + " hours"
+                    "Retry available after 24 hours"
             );
         }
     }

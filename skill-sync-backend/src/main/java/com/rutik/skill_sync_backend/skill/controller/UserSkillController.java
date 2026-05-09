@@ -3,12 +3,14 @@ package com.rutik.skill_sync_backend.skill.controller;
 import com.rutik.skill_sync_backend.common.response.ApiResponse;
 import com.rutik.skill_sync_backend.skill.dto.UserSkillRequestDTO;
 import com.rutik.skill_sync_backend.skill.dto.UserSkillResponseDTO;
+import com.rutik.skill_sync_backend.skill.dto.VerifiedBadgeResponseDto;
 import com.rutik.skill_sync_backend.skill.enums.SkillType;
 import com.rutik.skill_sync_backend.skill.service.SkillService;
 import com.rutik.skill_sync_backend.user.entity.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -83,6 +85,22 @@ public class UserSkillController {
         return ApiResponse.success(
                 "Filtered skills fetched",
                 skillService.getUserSkillsByType(user.getId(), type)
+        );
+    }
+
+    @GetMapping("/verified-badges")
+    public ApiResponse<List<VerifiedBadgeResponseDto>>
+    getVerifiedBadges(
+            Authentication auth
+    ) {
+
+        User user = (User) auth.getPrincipal();
+
+        return ApiResponse.success(
+                "Verified badges fetched successfully",
+                skillService.getVerifiedBadges(
+                        user.getId()
+                )
         );
     }
 }

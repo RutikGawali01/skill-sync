@@ -19,8 +19,9 @@
  * Data flow: Component → Redux Thunk → Service Layer → Backend → Store → UI
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import {
   Box, Text, Group, Stack, Button, ActionIcon, Tabs,
   Skeleton, Tooltip, SimpleGrid,
@@ -32,7 +33,16 @@ import {
   IconSparkles, IconInbox, IconX, IconCheck,
   IconCode, IconServer, IconCloud, IconDeviceMobile,
   IconPalette, IconDatabase, IconChartBar,
+  IconShieldCheck, IconClock, IconTrophy,
 } from '@tabler/icons-react';
+
+import {
+  generateTest,
+  selectGenerating,
+  selectVerificationError,
+  clearVerificationError,
+} from '../../redux/verificationSlice';
+import StartVerificationModal from '../verification/StartVerificationModal';
 
 import {
   fetchAvailableSkills,
@@ -104,13 +114,113 @@ const ConfirmDeleteOverlay = ({ skill, onConfirm, onCancel, isRemoving, isDark }
   </Box>
 );
 
+// ── Verification Status Widget (OFFER skills only) ────────────────────────────
+const VerificationWidget = ({ skill, isDark, onStartTest }) => {
+  const status = skill.verificationStatus; // 'VERIFIED' | 'FAILED' | 'PENDING' | undefined
+  const score  = skill.verificationScore;
+
+  const [now, setNow] = useState(new Date().getTime());
+
+  useEffect(() => {
+    if (status === 'COOLDOWN' || status === 'FAILED') {
+      const interval = setInterval(() => {
+        setNow(new Date().getTime());
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [status]);
+
+  if (status === 'VERIFIED') {
+    return (
+      <Group
+        gap={6}
+        style={{
+          background:   'rgba(34,197,94,0.1)',
+          border:       '1px solid rgba(34,197,94,0.25)',
+          borderRadius: 8,
+          padding:      '5px 10px',
+          marginTop:    4,
+        }}
+      >
+        <IconShieldCheck size={13} color="#22c55e" />
+        <Text size="xs" fw={700} style={{ color: '#22c55e' }}>Verified</Text>
+        {score != null && (
+          <Text size="xs" style={{ color: '#22c55e', opacity: 0.8 }}>· {score}%</Text>
+        )}
+      </Group>
+    );
+  }
+
+  if ((status === 'COOLDOWN' || status === 'FAILED') && skill.retryAvailableAt) {
+    const retryAt = new Date(skill.retryAvailableAt).getTime();
+    const diffMs  = retryAt - now;
+
+    if (diffMs > 0) {
+      const diffH   = Math.floor(diffMs / 3600000);
+      const diffM   = Math.floor((diffMs % 3600000) / 60000);
+      const diffS   = Math.floor((diffMs % 60000) / 1000);
+      
+      return (
+        <Group
+          gap={6}
+          style={{
+            background:   'rgba(249,115,22,0.08)',
+            border:       '1px solid rgba(249,115,22,0.2)',
+            borderRadius: 8,
+            padding:      '5px 10px',
+            marginTop:    4,
+          }}
+        >
+          <IconClock size={13} color="#f97316" />
+          <Text size="xs" fw={600} style={{ color: '#f97316' }}>
+            Retry in {diffH}h {diffM}m {diffS}s
+          </Text>
+        </Group>
+      );
+    }
+    // If diffMs <= 0, fall through to "Start Verification"
+  }
+
+  // PENDING or undefined → show Start button
+  return (
+    <Button
+      id={`start-verification-${skill.id ?? skill.skillId}`}
+      size="xs"
+      fullWidth
+      radius="md"
+      mt={6}
+      variant="gradient"
+      gradient={{ from: '#7c3aed', to: '#4f46e5', deg: 135 }}
+      leftSection={<IconShieldCheck size={12} />}
+      onClick={(e) => { e.stopPropagation(); onStartTest(skill); }}
+      style={{
+        fontWeight:  600,
+        fontSize:    '0.72rem',
+        boxShadow:   '0 2px 10px rgba(124,58,237,0.3)',
+        transition:  'transform 0.15s ease, box-shadow 0.15s ease',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'scale(1.03)';
+        e.currentTarget.style.boxShadow = '0 4px 16px rgba(124,58,237,0.45)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'scale(1)';
+        e.currentTarget.style.boxShadow = '0 2px 10px rgba(124,58,237,0.3)';
+      }}
+    >
+      Start Verification
+    </Button>
+  );
+};
+
 // ── Skill Card ────────────────────────────────────────────────────────────────
-const SkillCard = ({ skill, onRemove, isRemoving, isDark }) => {
+const SkillCard = ({ skill, onRemove, isRemoving, isDark, onStartTest }) => {
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const levelKey    = skill.level    ?? skill.proficiencyLevel;
   const typeKey     = skill.type     ?? skill.skillType;
   const categoryKey = skill.category;
+  const isOffer     = typeKey === 'OFFER';
 
   const levelConfig    = LEVEL_COLOR[levelKey]       ?? LEVEL_COLOR.BEGINNER;
   const typeConfig     = SKILL_TYPE_COLOR[typeKey]    ?? SKILL_TYPE_COLOR.OFFER;
@@ -206,7 +316,6 @@ const SkillCard = ({ skill, onRemove, isRemoving, isDark }) => {
 
       {/* Row 2: badges */}
       <Group gap={5} wrap="wrap" pl={8}>
-        {/* Category */}
         {categoryKey && (
           <Box style={{ background: categoryConfig.bg, border: `1px solid ${categoryConfig.border}`, borderRadius: 5, padding: '1px 7px' }}>
             <Text size="xs" fw={600} style={{ color: categoryConfig.color, fontSize: '0.68rem', letterSpacing: '0.2px' }}>
@@ -214,21 +323,24 @@ const SkillCard = ({ skill, onRemove, isRemoving, isDark }) => {
             </Text>
           </Box>
         )}
-
-        {/* Type: OFFER/WANT */}
         <Box style={{ background: typeConfig.bg, border: `1px solid ${typeConfig.border}`, borderRadius: 5, padding: '1px 7px' }}>
           <Text size="xs" fw={600} style={{ color: typeConfig.color, fontSize: '0.68rem', letterSpacing: '0.2px' }}>
             {typeKey === 'OFFER' ? '↑ Offering' : '↓ Learning'}
           </Text>
         </Box>
-
-        {/* Level */}
         <Box style={{ background: levelConfig.bg, border: `1px solid ${levelConfig.border}`, borderRadius: 5, padding: '1px 7px' }}>
           <Text size="xs" fw={600} style={{ color: levelConfig.color, fontSize: '0.68rem', letterSpacing: '0.2px' }}>
             {resolveSkillLabel(levelOptions, levelKey)}
           </Text>
         </Box>
       </Group>
+
+      {/* Verification widget — OFFER skills only */}
+      {isOffer && (
+        <Box pl={8}>
+          <VerificationWidget skill={skill} isDark={isDark} onStartTest={onStartTest} />
+        </Box>
+      )}
 
       {/* Confirm delete overlay */}
       {confirmOpen && (
@@ -326,6 +438,7 @@ const EmptyState = ({ isDark, onAdd, tab }) => {
 // ── Main Component ────────────────────────────────────────────────────────────
 const SkillsSection = ({ isDark }) => {
   const dispatch        = useDispatch();
+  const navigate        = useNavigate();
   const availableSkills = useSelector(selectAvailableSkills);
   const userSkills      = useSelector(selectUserSkills);
   const loading         = useSelector(selectSkillsLoading);
@@ -333,9 +446,13 @@ const SkillsSection = ({ isDark }) => {
   const adding          = useSelector(selectSkillsAdding);
   const removing        = useSelector(selectSkillsRemoving);
   const storeError      = useSelector(selectSkillsError);
+  const generating      = useSelector(selectGenerating);
+  const verifyError     = useSelector(selectVerificationError);
 
   const [activeTab, setActiveTab] = useState('all');
   const [modalOpened, { open: openModal, close: closeModal }] = useDisclosure(false);
+  const [verifyModalOpen, setVerifyModalOpen] = useState(false);
+  const [selectedSkillForTest, setSelectedSkillForTest] = useState(null);
 
   // ── Fetch on mount ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -343,7 +460,31 @@ const SkillsSection = ({ isDark }) => {
     dispatch(fetchAvailableSkills());
   }, [dispatch]);
 
-  // ── Surface errors ──────────────────────────────────────────────────────────
+  // ── Surface verification errors ─────────────────────────────────────────────
+  useEffect(() => {
+    if (verifyError) {
+      notifications.show({ id: 'verify-error', title: 'Verification Error', message: verifyError, color: 'red', autoClose: 5000, radius: 'md' });
+      dispatch(clearVerificationError());
+    }
+  }, [verifyError, dispatch]);
+
+  // ── Verification handlers ────────────────────────────────────────────────────
+  const handleOpenVerifyModal = useCallback((skill) => {
+    setSelectedSkillForTest(skill);
+    setVerifyModalOpen(true);
+  }, []);
+
+  const handleStartTest = useCallback(async () => {
+    if (!selectedSkillForTest) return;
+    const userSkillId = selectedSkillForTest.id ?? selectedSkillForTest.skillId;
+    const result = await dispatch(generateTest({ userSkillId }));
+    if (generateTest.fulfilled.match(result)) {
+      setVerifyModalOpen(false);
+      navigate(`/verification-test/${result.payload.testId}`);
+    }
+  }, [dispatch, selectedSkillForTest, navigate]);
+
+  // ── Surface skill errors ─────────────────────────────────────────────────────
   useEffect(() => {
     if (storeError) {
       notifications.show({ id: 'skill-error', title: 'Skills Error', message: storeError, color: 'red', autoClose: 5000, radius: 'md' });
@@ -477,13 +618,14 @@ const SkillsSection = ({ isDark }) => {
                 isDark={isDark}
                 isRemoving={removing === skill.skillId}
                 onRemove={handleRemoveSkill}
+                onStartTest={handleOpenVerifyModal}
               />
             ))}
           </SimpleGrid>
         )}
       </Box>
 
-      {/* ── Modal ── */}
+      {/* ── Add Skill Modal ── */}
       <AddSkillModal
         opened={modalOpened}
         onClose={closeModal}
@@ -491,6 +633,16 @@ const SkillsSection = ({ isDark }) => {
         adding={adding}
         availableSkills={availableSkills}
         catalogLoading={catalogLoading}
+        isDark={isDark}
+      />
+
+      {/* ── Start Verification Modal ── */}
+      <StartVerificationModal
+        opened={verifyModalOpen}
+        onClose={() => setVerifyModalOpen(false)}
+        onStart={handleStartTest}
+        skill={selectedSkillForTest}
+        loading={generating}
         isDark={isDark}
       />
     </>

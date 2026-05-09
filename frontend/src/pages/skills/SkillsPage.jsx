@@ -24,7 +24,8 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
-import { Search, BookOpen, Star, AlertCircle, Layers, Award, ArrowLeftRight } from 'lucide-react';
+import { Search, BookOpen, Star, AlertCircle, Layers, Award, ArrowLeftRight, ShieldCheck } from 'lucide-react';
+import { Tooltip } from '@mantine/core';
 
 import {
   fetchExploreSkills,
@@ -102,6 +103,7 @@ const SkillCard = ({ skill, index }) => {
     rating,
     completedSessions,
     wantsToLearn,
+    isVerified,
   } = skill;
 
   const levelStyle   = LEVEL_STYLE[skillLevel] ?? LEVEL_STYLE.BEGINNER;
@@ -113,13 +115,17 @@ const SkillCard = ({ skill, index }) => {
   const sessionCount = completedSessions ?? 0;
   const isNewMentor  = ratingValue === 0;
 
+  const cardBorderAndShadow = isVerified
+    ? 'border-green-200/60 dark:border-green-900/40 shadow-[0_4px_20px_-4px_rgba(22,163,74,0.08)] hover:shadow-[0_8px_30px_-4px_rgba(22,163,74,0.15)]'
+    : 'border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-[0_16px_36px_-8px_rgba(124,58,237,0.18)]';
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay: index * 0.06 }}
-      whileHover={{ y: -5, boxShadow: '0 16px 36px -8px rgba(124,58,237,0.18)' }}
-      className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 shadow-sm cursor-pointer group transition-shadow duration-300 flex flex-col gap-3"
+      whileHover={{ y: -5 }}
+      className={`bg-white dark:bg-gray-900 border rounded-2xl p-5 cursor-pointer group transition-all duration-300 flex flex-col gap-3 ${cardBorderAndShadow}`}
     >
       {/* ── 1. TOP METADATA: category badge + level badge ── */}
       <div className="flex items-center justify-between">
@@ -132,10 +138,23 @@ const SkillCard = ({ skill, index }) => {
         </span>
       </div>
 
-      {/* ── 2. PRIMARY: Skill name ── */}
-      <h3 className="text-[1.15rem] font-bold text-gray-900 dark:text-white leading-snug group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
-        {skillName}
-      </h3>
+      {/* ── 2. PRIMARY: Skill name + Verified Badge ── */}
+      <div className="flex flex-col items-start gap-1">
+        <h3 className="text-[1.15rem] font-bold text-gray-900 dark:text-white leading-snug group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
+          {skillName}
+        </h3>
+        
+        {isVerified && (
+          <Tooltip label="Verified through AI skill assessment" withArrow position="top">
+            <div className="flex items-center gap-1.5 mt-0.5 px-1 py-0.5 rounded-sm transition-colors duration-200 hover:bg-green-50 dark:hover:bg-green-900/20">
+              <ShieldCheck className="w-[14px] h-[14px] text-green-600 dark:text-green-500" />
+              <span className="text-xs font-semibold text-green-600 dark:text-green-500">
+                Verified Skill
+              </span>
+            </div>
+          </Tooltip>
+        )}
+      </div>
 
       {/* ── 3. USER TRUST SECTION ── */}
       <div className="flex items-center justify-between border-t border-gray-100 dark:border-gray-800 pt-3">

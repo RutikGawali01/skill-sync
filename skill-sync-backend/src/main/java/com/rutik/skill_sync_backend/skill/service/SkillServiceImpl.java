@@ -7,6 +7,7 @@ import com.rutik.skill_sync_backend.skill.entity.Skill;
 import com.rutik.skill_sync_backend.skill.entity.UserSkill;
 import com.rutik.skill_sync_backend.skill.enums.SkillLevel;
 import com.rutik.skill_sync_backend.skill.enums.SkillType;
+import com.rutik.skill_sync_backend.skill.mapper.UserSkillMapper;
 import com.rutik.skill_sync_backend.skill.repository.SkillRepository;
 import com.rutik.skill_sync_backend.skill.repository.UserSkillRepository;
 import com.rutik.skill_sync_backend.user.entity.User;
@@ -14,6 +15,7 @@ import com.rutik.skill_sync_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -161,18 +163,17 @@ public class SkillServiceImpl implements SkillService {
      * ✅ Get all skills of user
      */
     @Override
-    public List<UserSkillResponseDTO> getUserSkills(Long userId) {
-
-        log.info(
-                "➡️ Fetching all skills for userId: {}",
-                userId
-        );
+    @Transactional(readOnly = true)
+    public List<UserSkillResponseDTO> getUserSkills(
+            Long userId
+    ) {
 
         return userSkillRepository.findByUserId(userId)
                 .stream()
-                .map(this::mapToDTO)
+                .map(UserSkillMapper::mapToDto)
                 .toList();
     }
+
 
     /**
      * ✅ Get user skills by type
@@ -259,23 +260,77 @@ public class SkillServiceImpl implements SkillService {
                 .toList();
     }
 
-    private ExploreSkillResponseDto mapToExploreDto(UserSkill userSkill) {
+    private ExploreSkillResponseDto mapToExploreDto(
+            UserSkill userSkill
+    ) {
 
         User user = userSkill.getUser();
 
         return ExploreSkillResponseDto.builder()
+
+                // ==========================================
+                // USER SKILL ID
+                // ==========================================
+
                 .userSkillId(userSkill.getId())
-                .skillName(userSkill.getSkill().getName())
-                .skillLevel(userSkill.getLevel())
-                .category(userSkill.getSkill().getCategory().name())
+
+                // ==========================================
+                // SKILL INFO
+                // ==========================================
+
+                .skillName(
+                        userSkill.getSkill().getName()
+                )
+
+                .skillLevel(
+                        userSkill.getLevel()
+                )
+
+                .category(
+                        userSkill.getSkill()
+                                .getCategory()
+                                .name()
+                )
+
+                .isVerified(
+                        Boolean.TRUE.equals(
+                                userSkill.getIsVerified()
+                        )
+                )
+
+                // ==========================================
+                // USER INFO
+                // ==========================================
+
                 .userId(user.getId())
+
                 .fullName(user.getName())
-                .profilePicture(user.getProfilePicUrl())
+
+                .profilePicture(
+                        user.getProfilePicUrl()
+                )
+
+                // ==========================================
+                // TRUST SIGNALS
+                // ==========================================
+
                 .rating(user.getRating())
-                .completedSessions(user.getCompletedSessions())
-                .wantsToLearn(getWantedSkills(user))
+
+                .completedSessions(
+                        user.getCompletedSessions()
+                )
+
+                // ==========================================
+                // EXCHANGE CONTEXT
+                // ==========================================
+
+                .wantsToLearn(
+                        getWantedSkills(user)
+                )
+
                 .build();
     }
+
 
     private List<String> getWantedSkills(User user) {
 
@@ -295,6 +350,36 @@ public class SkillServiceImpl implements SkillService {
 
                 // Limit for clean UI
                 .limit(3)
+
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<VerifiedBadgeResponseDto> getVerifiedBadges(
+            Long userId
+    ) {
+
+        List<UserSkill> verifiedSkills =
+                userSkillRepository
+                        .findByUserIdAndIsVerifiedTrue(userId);
+
+        return verifiedSkills.stream()
+                .map(skill -> VerifiedBadgeResponseDto.builder()
+
+                        .skillId(skill.getSkill().getId())
+
+                        .skillName(skill.getSkill().getName())
+
+                        .verificationScore(
+                                skill.getVerificationScore()
+                        )
+
+                        .verifiedAt(
+                                skill.getVerifiedAt()
+                        )
+
+                        .build())
 
                 .toList();
     }

@@ -6,6 +6,8 @@ import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
 import SkillsPage from '../pages/skills/SkillsPage';
 import ProfilePage from '../pages/ProfilePage';
+import VerificationTestPage from '../pages/verification/VerificationTestPage';
+import VerificationResultPage from '../pages/verification/VerificationResultPage';
 
 // Placeholder pages — replace with real components as they are built
 const Placeholder = ({ label }) => (
@@ -39,6 +41,9 @@ const AppRoutes = () => (
           <Route path="/profile"       element={<ProfilePage />} />
           <Route path="/notifications" element={<Placeholder label="Notifications" />} />
         </Route>
+        {/* Verification pages — no MainLayout (full-screen test UI) */}
+        <Route path="/verification-test/:testId"   element={<VerificationTestPage />} />
+        <Route path="/verification-result/:testId" element={<VerificationResultPage />} />
       </Route>
 
       {/* ── Catch-all ── */}

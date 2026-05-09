@@ -76,4 +76,8 @@ public class UserSkill {
     @Column(name = "verification_attempts")
     @Builder.Default
     private Integer verificationAttempts = 0;
+
+    private LocalDateTime lastVerificationFailedAt;
+
+    private LocalDateTime retryAvailableAt;
 }
