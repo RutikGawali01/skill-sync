@@ -3,6 +3,7 @@ import authReducer from './authSlice';
 import profileReducer from './profileSlice';
 import skillReducer from './skillSlice';
 import verificationReducer from './verificationSlice';
+import availabilityReducer from './availabilitySlice';
 
 const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ const store = configureStore({
     profile:      profileReducer,
     skills:       skillReducer,
     verification: verificationReducer,
+    availability: availabilityReducer,
   },
 });
 

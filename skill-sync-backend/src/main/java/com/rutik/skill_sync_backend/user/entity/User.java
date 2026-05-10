@@ -1,5 +1,6 @@
 package com.rutik.skill_sync_backend.user.entity;
 
+import com.rutik.skill_sync_backend.availability.entity.Availability;
 import com.rutik.skill_sync_backend.session.entity.Session;
 import com.rutik.skill_sync_backend.skill.entity.UserSkill;
 import com.rutik.skill_sync_backend.user.enums.*;
@@ -74,10 +75,16 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<UserSkill> userSkills;
 
-    @OneToMany(mappedBy = "user")
-    private List<Availability> availabilities;
-
+    @OneToMany(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<Availability> availabilitySlots = new ArrayList<>();
     @OneToMany(mappedBy = "requester")
+
     private List<Session> requestedSessions;
 
     @OneToMany(mappedBy = "provider")

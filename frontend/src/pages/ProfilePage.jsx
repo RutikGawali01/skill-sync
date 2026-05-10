@@ -36,6 +36,7 @@ import ProfileEditForm from '../components/profile/ProfileEditForm';
 import ProfileStats, { ProfileStatsSkeleton } from '../components/profile/ProfileStats';
 import SkillsSection, { SkillsSectionSkeleton } from '../components/profile/SkillsSection';
 import VerifiedSkillsSection from '../components/profile/VerifiedSkillsSection';
+import AvailabilityPreviewCard from '../components/profile/AvailabilityPreviewCard';
 
 import { fetchVerifiedBadges } from '../redux/verificationSlice';
 
@@ -250,6 +251,21 @@ const ProfilePage = () => {
 
           {/* ── Verified Badges ── */}
           <VerifiedSkillsSection isDark={isDark} />
+
+          {/* ── Availability Preview ── */}
+          <Box>
+            <Divider
+              label={
+                <Text size="xs" fw={600} style={{ color: dividerLabelColor, letterSpacing: '1px', textTransform: 'uppercase' }}>
+                  📅 Availability
+                </Text>
+              }
+              labelPosition="left"
+              mb="md"
+              styles={{ root: { borderColor: dividerBorderColor } }}
+            />
+            <AvailabilityPreviewCard isDark={isDark} />
+          </Box>
 
           {/* ── Skills ── */}
           <Box>
