@@ -18,22 +18,22 @@ The platform focuses on:
 
 ## Current Status
 
-✅ Core backend architecture completed
-✅ Authentication system implemented
-✅ Skill management system implemented
-✅ Availability scheduling system integrated
-✅ Session workflow implemented
-✅ Frontend integration in progress
-✅ AI-powered skill verification system added
+- ✅ Core backend architecture completed
+- ✅ Authentication system implemented
+- ✅ Skill management system implemented
+- ✅ Availability scheduling system integrated
+- ✅ Session workflow implemented
+- ✅ Frontend integration in progress
+- ✅ AI-powered skill verification system added
 
-⚡ Currently working on:
+## 🚀 Currently Working On
 
-* Advanced matching engine
-* Recommendation system
-* Real-time chat
-* Notification system
-* Gamification
-* Fraud detection
+- Advanced matching engine
+- Recommendation system
+- Real-time chat
+- Notification system
+- Gamification
+- Fraud detection
 
 ---
 
@@ -267,7 +267,7 @@ frontend/
 ## 1️⃣ Clone Repository
 
 ```bash id="qqz9xf"
-git clone https://github.com/your-username/skill-exchange-platform.git
+git clone https://github.com/RutikGawali01/skill-sync.git
 ```
 
 ---
