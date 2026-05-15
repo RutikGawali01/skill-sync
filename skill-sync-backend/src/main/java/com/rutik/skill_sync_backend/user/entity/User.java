@@ -93,7 +93,7 @@ public class User {
     private String location;
     private String timezone;
 
-    // 🧠 MATCHING PREFERENCES (from repo)
+    // 🧠 MATCHING PREFERENCES
     @Enumerated(EnumType.STRING)
     private LearningGoal learningGoal;
 
