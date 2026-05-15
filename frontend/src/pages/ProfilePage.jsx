@@ -37,6 +37,8 @@ import ProfileStats, { ProfileStatsSkeleton } from '../components/profile/Profil
 import SkillsSection, { SkillsSectionSkeleton } from '../components/profile/SkillsSection';
 import VerifiedSkillsSection from '../components/profile/VerifiedSkillsSection';
 import AvailabilityPreviewCard from '../components/profile/AvailabilityPreviewCard';
+import TrustScoreCard from '../components/review/TrustScoreCard';
+import useReview from '../hooks/useReview';
 
 import { fetchVerifiedBadges } from '../redux/verificationSlice';
 
@@ -57,11 +59,25 @@ const ProfilePage = () => {
     handleUpdate,
   } = useProfile();
 
+  const {
+    trustData,
+    trustLoading,
+    trustError,
+    loadTrustScore,
+  } = useReview();
+
   // ── Fetch on mount ──────────────────────────────────────────────────────────
   useEffect(() => {
     fetchMyProfile();
     dispatch(fetchVerifiedBadges());
   }, [fetchMyProfile, dispatch]);
+
+  // Fetch trust score when profile loads
+  useEffect(() => {
+    if (profile?.id) {
+      loadTrustScore(profile.id);
+    }
+  }, [profile?.id, loadTrustScore]);
 
   // ── Handlers ────────────────────────────────────────────────────────────────
   const handleSave = async (dto) => {
@@ -265,6 +281,26 @@ const ProfilePage = () => {
               styles={{ root: { borderColor: dividerBorderColor } }}
             />
             <AvailabilityPreviewCard isDark={isDark} />
+          </Box>
+
+          {/* ── Reviews & Trust ── */}
+          <Box>
+            <Divider
+              label={
+                <Text size="xs" fw={600} style={{ color: dividerLabelColor, letterSpacing: '1px', textTransform: 'uppercase' }}>
+                  ⭐ Reviews & Trust
+                </Text>
+              }
+              labelPosition="left"
+              mb="md"
+              styles={{ root: { borderColor: dividerBorderColor } }}
+            />
+            <TrustScoreCard
+              trustData={trustData}
+              loading={trustLoading}
+              error={trustError}
+              isDark={isDark}
+            />
           </Box>
 
           {/* ── Skills ── */}

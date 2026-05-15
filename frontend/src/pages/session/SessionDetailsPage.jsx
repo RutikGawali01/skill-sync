@@ -12,7 +12,7 @@
  *   - Message
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
@@ -30,12 +30,16 @@ import {
   GraduationCap,
   Presentation,
 } from 'lucide-react';
-import { Divider } from '@mantine/core';
+import { Divider, Button, Badge } from '@mantine/core';
+import { IconStar, IconStarsFilled } from '@tabler/icons-react';
 import dayjs from 'dayjs';
 
 import useSessionActions from '../../hooks/useSessionActions';
 import SessionStatusBadge from '../../components/session/SessionStatusBadge';
 import SessionActionButtons from '../../components/session/SessionActionButtons';
+import ReviewModal from '../../components/review/ReviewModal';
+import ReviewList from '../../components/review/ReviewList';
+import useReview from '../../hooks/useReview';
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 const DetailSkeleton = () => (
@@ -132,11 +136,27 @@ const SessionDetailsPage = () => {
   const currentUser   = useSelector((state) => state.auth.user);
   const currentUserId = currentUser?.id;
 
+  const {
+    sessionReviews,
+    sessionRLoading,
+    reviewError,
+    loadSessionReviews,
+    clearReviews,
+  } = useReview();
+
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+
   // Fetch on mount
   useEffect(() => {
-    if (sessionId) loadSessionDetails(sessionId);
-    return () => clearDetail();
-  }, [sessionId, loadSessionDetails, clearDetail]);
+    if (sessionId) {
+      loadSessionDetails(sessionId);
+      loadSessionReviews(sessionId);
+    }
+    return () => {
+      clearDetail();
+      clearReviews();
+    };
+  }, [sessionId, loadSessionDetails, loadSessionReviews, clearDetail, clearReviews]);
 
   // Direction detection — use loose equality (==) for number vs string comparison
   const isProvider = session?.provider?.id != null && currentUserId != null && session.provider.id == currentUserId;
@@ -340,7 +360,20 @@ const SessionDetailsPage = () => {
                 </div>
 
                 {/* ── Actions ── */}
-                <div className="flex items-center justify-end pt-2">
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  {session.status === 'COMPLETED' && (
+                    <Button
+                      id="session-leave-review-btn"
+                      leftSection={<IconStar size={16} />}
+                      color="yellow"
+                      variant="light"
+                      radius="md"
+                      size="sm"
+                      onClick={() => setReviewModalOpen(true)}
+                    >
+                      Leave Review
+                    </Button>
+                  )}
                   <SessionActionButtons
                     session={session}
                     currentUserId={currentUserId}
@@ -353,9 +386,57 @@ const SessionDetailsPage = () => {
                 </div>
               </div>
             </div>
+
+            {/* ── Reviews Section ── */}
+            {session.status === 'COMPLETED' && (
+              <div className="mt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <IconStarsFilled size={18} className="text-amber-500" />
+                    <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+                      Session Reviews
+                    </h3>
+                    {sessionReviews.length > 0 && (
+                      <Badge size="xs" variant="light" color="violet" radius="sm">
+                        {sessionReviews.length}
+                      </Badge>
+                    )}
+                  </div>
+                  <Button
+                    variant="subtle"
+                    color="violet"
+                    size="xs"
+                    radius="md"
+                    onClick={() => navigate(`/sessions/${sessionId}/reviews`)}
+                  >
+                    View All
+                  </Button>
+                </div>
+                <ReviewList
+                  reviews={sessionReviews}
+                  loading={sessionRLoading}
+                  error={reviewError}
+                  isDark={document.documentElement.classList.contains('dark')}
+                  emptyTitle="No Reviews Yet"
+                  emptyMessage="Be the first to review this completed session."
+                />
+              </div>
+            )}
           </motion.div>
         )}
       </div>
+
+      {/* ── Review Modal ── */}
+      <ReviewModal
+        opened={reviewModalOpen}
+        onClose={() => {
+          setReviewModalOpen(false);
+          if (sessionId) loadSessionReviews(sessionId);
+        }}
+        session={session}
+        currentUserId={currentUserId}
+        isDark={document.documentElement.classList.contains('dark')}
+      />
     </div>
   );
 };

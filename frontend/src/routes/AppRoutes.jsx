@@ -11,6 +11,8 @@ import VerificationResultPage from '../pages/verification/VerificationResultPage
 import AvailabilityPage from '../pages/availability/AvailabilityPage';
 import SessionDashboardPage from '../pages/session/SessionDashboardPage';
 import SessionDetailsPage from '../pages/session/SessionDetailsPage';
+import UserReviewsPage from '../pages/review/UserReviewsPage';
+import SessionReviewPage from '../pages/review/SessionReviewPage';
 
 // Placeholder pages — replace with real components as they are built
 const Placeholder = ({ label }) => (
@@ -45,6 +47,8 @@ const AppRoutes = () => (
           <Route path="/availability"  element={<AvailabilityPage />} />
           <Route path="/sessions"       element={<SessionDashboardPage />} />
           <Route path="/sessions/:sessionId" element={<SessionDetailsPage />} />
+          <Route path="/sessions/:sessionId/reviews" element={<SessionReviewPage />} />
+          <Route path="/reviews"         element={<UserReviewsPage />} />
           <Route path="/notifications" element={<Placeholder label="Notifications" />} />
         </Route>
         {/* Verification pages — no MainLayout (full-screen test UI) */}

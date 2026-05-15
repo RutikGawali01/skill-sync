@@ -5,6 +5,8 @@ import skillReducer from './skillSlice';
 import verificationReducer from './verificationSlice';
 import availabilityReducer from './availabilitySlice';
 import sessionReducer from './session/sessionSlice';
+import reviewReducer from './review/reviewSlice';
+import trustReducer from './review/trustSlice';
 
 const store = configureStore({
   reducer: {
@@ -14,6 +16,8 @@ const store = configureStore({
     verification: verificationReducer,
     availability: availabilityReducer,
     sessions:     sessionReducer,
+    reviews:      reviewReducer,
+    trust:        trustReducer,
   },
 });
 
