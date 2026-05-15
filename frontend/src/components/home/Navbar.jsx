@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion, AnimatePresence, useScroll, useTransform, useMotionTemplate } from 'framer-motion';
-import { Menu, X, Sun, Moon, Zap, Bell, MessageCircle, UserCircle2, LogOut, ChevronDown, CalendarDays } from 'lucide-react';
+import { Menu, X, Sun, Moon, Zap, Bell, MessageCircle, UserCircle2, LogOut, ChevronDown, CalendarDays, CalendarClock } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { logout } from '../../redux/authSlice';
 
@@ -20,6 +20,7 @@ const authedLinks = [
   { label: 'Explore Skills', path: '/skills' },
   { label: 'Community',      path: '/community' },
   { label: 'Availability',   path: '/availability', icon: CalendarDays },
+  { label: 'Sessions',       path: '/sessions',     icon: CalendarClock },
   { label: 'Chat',           path: '/chat', icon: MessageCircle },
 ];
 
@@ -76,6 +77,13 @@ const ProfileMenu = ({ user, onLogout }) => {
               >
                 <CalendarDays className="w-4 h-4" />
                 Availability
+              </button>
+              <button
+                onClick={() => { navigate('/sessions'); setOpen(false); }}
+                className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-violet-50 dark:hover:bg-violet-950/40 hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
+              >
+                <CalendarClock className="w-4 h-4" />
+                Sessions
               </button>
               <button
                 onClick={() => { navigate('/chat'); setOpen(false); }}
@@ -310,6 +318,12 @@ const Navbar = () => {
                       className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-violet-50 dark:hover:bg-violet-950/50 hover:text-violet-600 dark:hover:text-violet-400 transition-all"
                     >
                       <CalendarDays className="w-4 h-4" /> Availability
+                    </button>
+                    <button
+                      onClick={() => { navigate('/sessions'); setIsOpen(false); }}
+                      className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-violet-50 dark:hover:bg-violet-950/50 hover:text-violet-600 dark:hover:text-violet-400 transition-all"
+                    >
+                      <CalendarClock className="w-4 h-4" /> Sessions
                     </button>
                     <button
                       onClick={() => { handleLogout(); setIsOpen(false); }}

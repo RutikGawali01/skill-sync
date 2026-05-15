@@ -1,5 +1,6 @@
 package com.rutik.skill_sync_backend.skill.service;
 
+import com.rutik.skill_sync_backend.availability.dto.response.AvailabilityResponseDTO;
 import com.rutik.skill_sync_backend.common.exception.BadRequestException;
 import com.rutik.skill_sync_backend.common.exception.ResourceNotFoundException;
 import com.rutik.skill_sync_backend.skill.dto.*;
@@ -292,6 +293,10 @@ public class SkillServiceImpl implements SkillService {
                                 .name()
                 )
 
+                .skillId(
+                        userSkill.getSkill().getId()
+                )
+
                 .isVerified(
                         Boolean.TRUE.equals(
                                 userSkill.getIsVerified()
@@ -328,6 +333,14 @@ public class SkillServiceImpl implements SkillService {
                         getWantedSkills(user)
                 )
 
+                // ==========================================
+                // PROVIDER AVAILABILITY
+                // ==========================================
+
+                .availability(
+                        getProviderAvailability(user)
+                )
+
                 .build();
     }
 
@@ -351,6 +364,22 @@ public class SkillServiceImpl implements SkillService {
                 // Limit for clean UI
                 .limit(3)
 
+                .toList();
+    }
+
+    private List<AvailabilityResponseDTO> getProviderAvailability(
+            User user
+    ) {
+        if (user.getAvailabilitySlots() == null) {
+            return List.of();
+        }
+        return user.getAvailabilitySlots().stream()
+                .map(slot -> AvailabilityResponseDTO.builder()
+                        .id(slot.getId())
+                        .day(slot.getDay())
+                        .startTime(slot.getStartTime())
+                        .endTime(slot.getEndTime())
+                        .build())
                 .toList();
     }
 

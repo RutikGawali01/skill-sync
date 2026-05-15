@@ -1,5 +1,6 @@
 package com.rutik.skill_sync_backend.skill.dto;
 
+import com.rutik.skill_sync_backend.availability.dto.response.AvailabilityResponseDTO;
 import com.rutik.skill_sync_backend.skill.enums.SkillLevel;
 import lombok.Builder;
 import lombok.Data;
@@ -26,6 +27,8 @@ public class ExploreSkillResponseDto {
 
     private String category;
 
+    private Long skillId;
+
     private Boolean isVerified;
 
     // ==========================================
@@ -51,4 +54,10 @@ public class ExploreSkillResponseDto {
     // ==========================================
 
     private List<String> wantsToLearn;
+
+    // ==========================================
+    // PROVIDER AVAILABILITY
+    // ==========================================
+
+    private List<AvailabilityResponseDTO> availability;
 }

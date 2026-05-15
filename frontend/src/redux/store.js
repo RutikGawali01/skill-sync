@@ -4,6 +4,7 @@ import profileReducer from './profileSlice';
 import skillReducer from './skillSlice';
 import verificationReducer from './verificationSlice';
 import availabilityReducer from './availabilitySlice';
+import sessionReducer from './session/sessionSlice';
 
 const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ const store = configureStore({
     skills:       skillReducer,
     verification: verificationReducer,
     availability: availabilityReducer,
+    sessions:     sessionReducer,
   },
 });
 

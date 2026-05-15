@@ -24,8 +24,10 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
-import { Search, BookOpen, Star, AlertCircle, Layers, Award, ArrowLeftRight, ShieldCheck } from 'lucide-react';
+import { Search, BookOpen, Star, AlertCircle, Layers, Award, ArrowLeftRight, ShieldCheck, CalendarPlus } from 'lucide-react';
 import { Tooltip } from '@mantine/core';
+import RequestSessionModal from '../../components/session/RequestSessionModal';
+import AvailabilityPreview from '../../components/session/AvailabilityPreview';
 
 import {
   fetchExploreSkills,
@@ -93,7 +95,7 @@ const SkeletonCard = () => (
 );
 
 // ── Skill Card ────────────────────────────────────────────────────────────────
-const SkillCard = ({ skill, index }) => {
+const SkillCard = ({ skill, index, onRequestSession }) => {
   const {
     skillName,
     skillLevel,
@@ -228,14 +230,24 @@ const SkillCard = ({ skill, index }) => {
         )}
       </div>
 
+      {/* ── 4.5 AVAILABILITY PREVIEW ── */}
+      <div className="border-t border-gray-100 dark:border-gray-800 pt-2.5">
+        <AvailabilityPreview
+          slots={skill.availability}
+          compact
+          maxSlots={2}
+        />
+      </div>
+
       {/* ── 5. CTA ── */}
       <motion.button
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.97 }}
+        onClick={() => onRequestSession?.(skill)}
         className="mt-1 w-full py-2 bg-violet-50 dark:bg-violet-950/50 hover:bg-violet-100 dark:hover:bg-violet-900/50 text-violet-600 dark:text-violet-400 rounded-xl font-semibold text-sm transition-colors flex items-center justify-center gap-2"
       >
-        <ArrowLeftRight className="w-3.5 h-3.5" />
-        Request Exchange
+        <CalendarPlus className="w-3.5 h-3.5" />
+        Request Session
       </motion.button>
     </motion.div>
   );
@@ -284,6 +296,15 @@ const SkillsPage = () => {
   const error         = useSelector(selectExploreError);
 
   const [query, setQuery] = useState('');
+
+  // ── Session Request Modal State ──
+  const [modalOpened, setModalOpened]     = useState(false);
+  const [selectedSkill, setSelectedSkill] = useState(null);
+
+  const handleRequestSession = (skill) => {
+    setSelectedSkill(skill);
+    setModalOpened(true);
+  };
 
   // Fetch on mount
   useEffect(() => {
@@ -362,12 +383,19 @@ const SkillsPage = () => {
             <EmptyState />
           ) : (
             filtered.map((skill, i) => (
-              <SkillCard key={skill.userSkillId ?? i} skill={skill} index={i} />
+              <SkillCard key={skill.userSkillId ?? i} skill={skill} index={i} onRequestSession={handleRequestSession} />
             ))
           )}
         </div>
 
       </div>
+
+      {/* ── Session Request Modal ── */}
+      <RequestSessionModal
+        opened={modalOpened}
+        onClose={() => setModalOpened(false)}
+        skill={selectedSkill}
+      />
     </div>
   );
 };
