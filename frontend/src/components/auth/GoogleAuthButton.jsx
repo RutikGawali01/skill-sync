@@ -8,10 +8,8 @@ import { tokenService, decodeToken } from '../../utils/tokenUtils';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// DEV GUARD — catch missing env var immediately instead of getting a cryptic
-// "Missing required parameter: client_id" error from Google's servers.
-// ─────────────────────────────────────────────────────────────────────────────
+//catch missing env var 
+
 if (!GOOGLE_CLIENT_ID) {
   console.error(
     '[GoogleAuthButton] ❌ VITE_GOOGLE_CLIENT_ID is undefined.\n' +
@@ -23,24 +21,7 @@ if (!GOOGLE_CLIENT_ID) {
   );
 }
 
-/**
- * GoogleAuthButton
- *
- * Uses Google Identity Services (GIS) SDK — NOT redirect-based OAuth.
- *
- * Flow:
- *  1. GIS SDK renders the official "Continue with Google" button
- *  2. User clicks → GIS shows Google account picker POPUP (not redirect)
- *  3. On success → GIS calls our callback with response.credential (ID token)
- *  4. We POST { idToken } to /api/auth/google  (Vite proxy → http://localhost:8080)
- *  5. Backend verifies with Google, returns accessToken + sets HttpOnly cookie
- *  6. We store token → dispatch to Redux → navigate to /skills
- *
- * Prerequisites:
- *  - VITE_GOOGLE_CLIENT_ID must be set in .env (see .env.example)
- *  - http://localhost:5173 must be in "Authorised JavaScript origins" in Google Cloud Console
- *  - GIS script tag in index.html: <script src="https://accounts.google.com/gsi/client" async defer>
- */
+
 const GoogleAuthButton = ({ label }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();

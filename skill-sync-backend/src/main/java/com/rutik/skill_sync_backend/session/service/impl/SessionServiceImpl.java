@@ -30,6 +30,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.context.ApplicationEventPublisher;
+import com.rutik.skill_sync_backend.session.event.SessionAcceptedEvent;
+import com.rutik.skill_sync_backend.session.event.SessionCompletedEvent;
+import com.rutik.skill_sync_backend.session.event.SessionCancelledEvent;
 
 @Service
 @RequiredArgsConstructor
@@ -40,15 +44,13 @@ public class SessionServiceImpl implements SessionService {
     private final UserRepository userRepository;
     private final SkillRepository skillRepository;
     private final UserSkillRepository userSkillRepository;
-
-
     private final SessionMapper sessionMapper;
-
     private final SessionBookingValidator bookingValidator;
     private final SessionAvailabilityValidator availabilityValidator;
     private final SessionConflictValidator conflictValidator;
     private final SessionStateValidator stateValidator;
     private final SessionAuthorizationValidator authorizationValidator;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public SessionResponseDto createSession(
@@ -254,6 +256,13 @@ public class SessionServiceImpl implements SessionService {
             session.setStatus(SessionStatus.ACCEPTED);
 
             session.setAcceptedAt(LocalDateTime.now());
+
+            eventPublisher.publishEvent(SessionAcceptedEvent.builder()
+                    .sessionId(session.getId())
+                    .requesterId(session.getRequester().getId())
+                    .providerId(session.getProvider().getId())
+                    .skillName(session.getSkill().getName())
+                    .build());
         }
 
         // ==========================================
@@ -346,6 +355,18 @@ public class SessionServiceImpl implements SessionService {
 
         session.setCancellationReason(dto.getReason());
 
+        Long otherPartyId = userId.equals(session.getRequester().getId()) 
+                ? session.getProvider().getId() 
+                : session.getRequester().getId();
+
+        eventPublisher.publishEvent(SessionCancelledEvent.builder()
+                .sessionId(session.getId())
+                .cancelledById(userId)
+                .otherPartyId(otherPartyId)
+                .skillName(session.getSkill().getName())
+                .reason(dto.getReason())
+                .build());
+
         // ==========================================
         // SAVE SESSION
         // ==========================================
@@ -406,6 +427,13 @@ public class SessionServiceImpl implements SessionService {
         session.setStatus(SessionStatus.COMPLETED);
 
         session.setCompletedAt(LocalDateTime.now());
+
+        eventPublisher.publishEvent(SessionCompletedEvent.builder()
+                .sessionId(session.getId())
+                .requesterId(session.getRequester().getId())
+                .providerId(session.getProvider().getId())
+                .skillName(session.getSkill().getName())
+                .build());
 
         // ==========================================
         // UPDATE USER METRICS

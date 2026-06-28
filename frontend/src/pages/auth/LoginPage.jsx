@@ -6,10 +6,6 @@ import LoginForm from '../../components/auth/LoginForm';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-console.log("ENV CHECK:", import.meta.env.VITE_GOOGLE_CLIENT_ID);
-// Should print your actual client ID, NOT undefined
-
-  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-violet-950 to-indigo-950 px-4 py-12 relative overflow-hidden">
