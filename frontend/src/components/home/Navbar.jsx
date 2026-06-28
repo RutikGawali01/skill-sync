@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion, AnimatePresence, useScroll, useTransform, useMotionTemplate } from 'framer-motion';
-import { Menu, X, Sun, Moon, Zap, Bell, MessageCircle, UserCircle2, LogOut, ChevronDown, CalendarDays, CalendarClock, Star } from 'lucide-react';
+import { Menu, X, Sun, Moon, Zap, MessageCircle, UserCircle2, LogOut, ChevronDown, CalendarDays, CalendarClock, Star } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { logout } from '../../redux/authSlice';
+import NotificationBell from '../notification/NotificationBell';
+import useNotificationSocket from '../../hooks/useNotificationSocket';
 
 // ── Nav links differ based on auth ──────────────────────────────────────────
 const guestLinks  = [
@@ -137,6 +139,9 @@ const Navbar = () => {
     navigate('/');
   };
 
+  // ── WebSocket: connect when authenticated ──────────────────────────────────
+  useNotificationSocket();
+
   const isActive = (path) =>
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
 
@@ -224,20 +229,10 @@ const Navbar = () => {
               {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </motion.button>
 
-            {isLoggedIn ? (
+                {isLoggedIn ? (
               <>
                 {/* Notifications */}
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => navigate('/notifications')}
-                  aria-label="Notifications"
-                  className="relative w-9 h-9 rounded-xl flex items-center justify-center bg-gray-100/80 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                >
-                  <Bell className="w-4 h-4" />
-                  {/* Unread dot */}
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-violet-500 rounded-full ring-2 ring-white dark:ring-gray-800" />
-                </motion.button>
+                <NotificationBell />
 
                 {/* Profile dropdown */}
                 <ProfileMenu user={user} onLogout={handleLogout} />
@@ -267,14 +262,7 @@ const Navbar = () => {
             </motion.button>
 
             {isLoggedIn && (
-              <motion.button
-                whileTap={{ scale: 0.9 }}
-                onClick={() => navigate('/notifications')}
-                className="relative w-9 h-9 rounded-xl flex items-center justify-center bg-gray-100/80 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
-              >
-                <Bell className="w-4 h-4" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-violet-500 rounded-full ring-2 ring-white dark:ring-gray-800" />
-              </motion.button>
+              <NotificationBell />
             )}
 
             <button

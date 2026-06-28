@@ -6,6 +6,11 @@ import { googleAuth } from '../../services/authService';
 import { setAuth } from '../../redux/authSlice';
 import { tokenService, decodeToken } from '../../utils/tokenUtils';
 
+// Module-level flag: GIS can only be initialized once per page load.
+// This survives React StrictMode double-mounts and component re-renders.
+let gisInitialised = false;
+
+
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 //catch missing env var 
@@ -23,13 +28,21 @@ if (!GOOGLE_CLIENT_ID) {
 
 
 const GoogleAuthButton = ({ label }) => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const containerRef = useRef(null);
-  const initialised = useRef(false);
-  const [error, setError] = useState('');
+  const dispatch   = useDispatch();
+  const navigate   = useNavigate();
+  const containerRef  = useRef(null);
+  const [error, setError]           = useState('');
   const [scriptLoaded, setScriptLoaded] = useState(() => Boolean(window.google?.accounts?.id));
   const [scriptFailed, setScriptFailed] = useState(false);
+
+  // Store dispatch/navigate in refs so the credential callback never goes stale
+  // and never needs to be in a useCallback dependency array.
+  const dispatchRef  = useRef(dispatch);
+  const navigateRef  = useRef(navigate);
+  const setErrorRef  = useRef(setError);
+  useEffect(() => { dispatchRef.current  = dispatch;  }, [dispatch]);
+  useEffect(() => { navigateRef.current  = navigate;  }, [navigate]);
+  useEffect(() => { setErrorRef.current  = setError;  }, []);
 
   // Show a clear dev error card instead of rendering a broken button
   if (!GOOGLE_CLIENT_ID) {
@@ -42,47 +55,47 @@ const GoogleAuthButton = ({ label }) => {
   }
 
   /**
-   * Wrapped in useCallback so the reference stays stable across re-renders.
-   * GIS.initialize() captures this callback at init time — a stale ref would
-   * silently break auth after the component re-renders.
+   * Defined once at render time using refs — no stale closure risk.
+   * Because it accesses refs (not state), it never changes identity between renders,
+   * so it's safe to pass to GIS without re-initialising.
    */
   const handleCredentialResponse = useCallback(async (credentialResponse) => {
-    setError('');
+    setErrorRef.current('');
     try {
       const res = await googleAuth(credentialResponse.credential);
       const { accessToken } = res.data.data;
-
-      // 1. Persist token to localStorage via tokenService abstraction
       tokenService.set(accessToken);
-      // 2. Decode JWT payload { id, email, role } and hydrate Redux
       const user = decodeToken(accessToken);
-      dispatch(setAuth({ token: accessToken, user }));
-      // 3. Navigate to the protected dashboard
-      navigate('/skills');
+      dispatchRef.current(setAuth({ token: accessToken, user }));
+      navigateRef.current('/skills');
     } catch (err) {
       const msg = 'Google sign-in failed. Please try again.';
-      console.error('[GoogleAuthButton] OAuth error:', msg);
-      setError(msg);
+      console.error('[GoogleAuthButton] OAuth error:', err);
+      setErrorRef.current(msg);
     }
-  }, [dispatch, navigate]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // intentionally empty — refs keep it current without identity changes
 
   const initGIS = useCallback(() => {
-    if (initialised.current || !containerRef.current || !window.google?.accounts?.id) return;
-    initialised.current = true;
+    if (!containerRef.current || !window.google?.accounts?.id) return;
 
-    window.google.accounts.id.initialize({
-      client_id: GOOGLE_CLIENT_ID,   // must never be undefined — guarded above
-      callback: handleCredentialResponse,
-      ux_mode: 'popup',            // popup flow, NOT redirect
-    });
+    // Use module-level flag so StrictMode double-mount doesn't call initialize() twice
+    if (!gisInitialised) {
+      gisInitialised = true;
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback:  handleCredentialResponse,
+        ux_mode:   'popup',
+      });
+    }
 
     window.google.accounts.id.renderButton(containerRef.current, {
-      theme: 'outline',
-      size: 'large',
-      type: 'standard',
-      shape: 'rectangular',
+      theme:          'outline',
+      size:           'large',
+      type:           'standard',
+      shape:          'rectangular',
       logo_alignment: 'left',
-      text: label?.toLowerCase().includes('sign up') ? 'signup_with' : 'continue_with',
+      text:  label?.toLowerCase().includes('sign up') ? 'signup_with' : 'continue_with',
       width: containerRef.current.offsetWidth || 400,
     });
   }, [handleCredentialResponse, label]);

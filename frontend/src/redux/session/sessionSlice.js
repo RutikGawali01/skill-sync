@@ -17,7 +17,7 @@
  * }
  */
 
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createSelector } from '@reduxjs/toolkit';
 import {
   createSessionRequest,
   fetchMySessions,
@@ -206,34 +206,39 @@ export const selectSessionError    = (state) => state.sessions.error;
 export const selectActionError     = (state) => state.sessions.actionError;
 export const selectActiveTab       = (state) => state.sessions.activeTab;
 
-// ── Derived Selectors ─────────────────────────────────────────────────────────
+// ── Derived Selectors (memoized) ──────────────────────────────────────────────
 
-/** Sessions filtered by dashboard tab. */
-export const selectFilteredSessions = (state) => {
-  const { activeTab } = state.sessions;
-  const sessions = Array.isArray(state.sessions.sessions) ? state.sessions.sessions : [];
-  switch (activeTab) {
-    case SESSION_TABS.PENDING:
-      return sessions.filter((s) => s.status === SESSION_STATUS.PENDING);
-    case SESSION_TABS.UPCOMING:
-      return sessions.filter((s) => s.status === SESSION_STATUS.ACCEPTED);
-    case SESSION_TABS.COMPLETED:
-      return sessions.filter((s) => s.status === SESSION_STATUS.COMPLETED);
-    case SESSION_TABS.CANCELLED:
-      return sessions.filter(
-        (s) => s.status === SESSION_STATUS.CANCELLED ||
-               s.status === SESSION_STATUS.REJECTED ||
-               s.status === SESSION_STATUS.EXPIRED
-      );
-    default:
-      return sessions;
+const selectSessions  = (state) => (Array.isArray(state.sessions.sessions) ? state.sessions.sessions : []);
+const _selectActiveTab = (state) => state.sessions.activeTab;
+
+/** Sessions filtered by dashboard tab. Memoized to prevent new-reference rerenders. */
+export const selectFilteredSessions = createSelector(
+  selectSessions,
+  _selectActiveTab,
+  (sessions, activeTab) => {
+    switch (activeTab) {
+      case SESSION_TABS.PENDING:
+        return sessions.filter((s) => s.status === SESSION_STATUS.PENDING);
+      case SESSION_TABS.UPCOMING:
+        return sessions.filter((s) => s.status === SESSION_STATUS.ACCEPTED);
+      case SESSION_TABS.COMPLETED:
+        return sessions.filter((s) => s.status === SESSION_STATUS.COMPLETED);
+      case SESSION_TABS.CANCELLED:
+        return sessions.filter(
+          (s) => s.status === SESSION_STATUS.CANCELLED ||
+                 s.status === SESSION_STATUS.REJECTED ||
+                 s.status === SESSION_STATUS.EXPIRED
+        );
+      default:
+        return sessions;
+    }
   }
-};
+);
 
-/** Count of sessions per status for tab badges. */
-export const selectSessionCounts = (state) => {
-  const sessions = Array.isArray(state.sessions.sessions) ? state.sessions.sessions : [];
-  return {
+/** Count of sessions per status for tab badges. Memoized to prevent new-reference rerenders. */
+export const selectSessionCounts = createSelector(
+  selectSessions,
+  (sessions) => ({
     pending:   sessions.filter((s) => s.status === SESSION_STATUS.PENDING).length,
     upcoming:  sessions.filter((s) => s.status === SESSION_STATUS.ACCEPTED).length,
     completed: sessions.filter((s) => s.status === SESSION_STATUS.COMPLETED).length,
@@ -242,5 +247,5 @@ export const selectSessionCounts = (state) => {
              s.status === SESSION_STATUS.REJECTED ||
              s.status === SESSION_STATUS.EXPIRED
     ).length,
-  };
-};
+  })
+);

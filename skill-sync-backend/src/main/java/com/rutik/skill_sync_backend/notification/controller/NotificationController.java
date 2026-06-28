@@ -89,4 +89,14 @@ public class NotificationController {
         notificationService.deleteNotification(id, userId);
         return ResponseEntity.ok(ApiResponse.success("Notification deleted successfully"));
     }
+
+    /**
+     * TEST ENDPOINT: Trigger a test WebSocket notification.
+     */
+    @PostMapping("/test-push")
+    public ResponseEntity<ApiResponse<Void>> testPushNotification(@AuthenticationPrincipal(expression = "id") Long userId) {
+        log.info("🧪 REST Request: Trigger test notification for user ID: {}", userId);
+        notificationService.notifyBadgeEarned(userId, 999L, "WebSocket Test Badge");
+        return ResponseEntity.ok(ApiResponse.success("Test notification triggered successfully"));
+    }
 }

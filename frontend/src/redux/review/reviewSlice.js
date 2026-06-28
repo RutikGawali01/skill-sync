@@ -16,7 +16,7 @@
  * }
  */
 
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, createSelector } from '@reduxjs/toolkit';
 import * as reviewService from '../../services/reviewService';
 
 // ── Async Thunks ──────────────────────────────────────────────────────────────
@@ -154,7 +154,7 @@ export const selectReviewError      = (state) => state.reviews.error;
 export const selectSubmitError      = (state) => state.reviews.submitError;
 export const selectSubmitSuccess    = (state) => state.reviews.submitSuccess;
 
-// ── Derived Selectors ─────────────────────────────────────────────────────────
+// ── Derived Selectors (memoized) ──────────────────────────────────────────────
 
 /** Average overall rating from user reviews. */
 export const selectAverageRating = (state) => {
@@ -164,15 +164,17 @@ export const selectAverageRating = (state) => {
   return Math.round((sum / reviews.length) * 10) / 10;
 };
 
-/** Rating distribution: { 5: count, 4: count, ... } */
-export const selectRatingDistribution = (state) => {
-  const reviews = state.reviews.userReviews;
-  const dist = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-  reviews.forEach((r) => {
-    const rating = Math.round(r.overallRating || 0);
-    if (rating >= 1 && rating <= 5) {
-      dist[rating] += 1;
-    }
-  });
-  return dist;
-};
+/** Rating distribution: { 5: count, 4: count, ... }. Memoized to prevent new-reference rerenders. */
+export const selectRatingDistribution = createSelector(
+  (state) => state.reviews.userReviews,
+  (reviews) => {
+    const dist = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    reviews.forEach((r) => {
+      const rating = Math.round(r.overallRating || 0);
+      if (rating >= 1 && rating <= 5) {
+        dist[rating] += 1;
+      }
+    });
+    return dist;
+  }
+);

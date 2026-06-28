@@ -7,6 +7,7 @@ import availabilityReducer from './availabilitySlice';
 import sessionReducer from './session/sessionSlice';
 import reviewReducer from './review/reviewSlice';
 import trustReducer from './review/trustSlice';
+import notificationReducer from './notification/notificationSlice';
 
 const store = configureStore({
   reducer: {
@@ -16,8 +17,9 @@ const store = configureStore({
     verification: verificationReducer,
     availability: availabilityReducer,
     sessions:     sessionReducer,
-    reviews:      reviewReducer,
-    trust:        trustReducer,
+    reviews:       reviewReducer,
+    trust:         trustReducer,
+    notifications: notificationReducer,
   },
 });
 

@@ -16,6 +16,7 @@
     "@mantine/hooks": "^9.1.0",
     "@mantine/notifications": "^9.1.1",
     "@reduxjs/toolkit": "^2.11.2",
+    "@stomp/stompjs": "^7.3.0",
     "@tabler/icons-react": "^3.41.1",
     "@tailwindcss/vite": "^4.2.4",
     "axios": "^1.15.2",
@@ -26,6 +27,7 @@
     "react-dom": "^19.2.5",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.14.2",
+    "sockjs-client": "^1.6.1",
     "tailwindcss": "^4.2.4"
   },
   "devDependencies": {

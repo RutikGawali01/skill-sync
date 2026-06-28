@@ -6,18 +6,28 @@ import com.rutik.skill_sync_backend.session.event.SessionCompletedEvent;
 import com.rutik.skill_sync_backend.session.event.SessionCancelledEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
- * Domain Event Listener for session-related events.
+ * Domain Event Listener for session-related notifications.
  *
- * Responsibilities:
- * ─────────────────
- * 1. Listens to SessionAcceptedEvent, SessionCompletedEvent, and SessionCancelledEvent.
- * 2. Unpacks the event and delegates business orchestration to NotificationService.
- * 3. Asynchronous execution (@Async) prevents blocking the primary HTTP request thread.
+ * Critical design decisions:
+ * ──────────────────────────
+ * 1. @TransactionalEventListener(phase = AFTER_COMMIT)
+ *    Events are fired ONLY after the parent transaction commits successfully.
+ *    This prevents phantom notifications for sessions that never persisted.
+ *    Previously @EventListener fired inside the active transaction — the
+ *    WebSocket push ran before the DB row was committed.
+ *
+ * 2. @Async
+ *    Notification creation + WebSocket push run in a separate thread pool.
+ *    This prevents blocking the HTTP response thread and avoids inheriting
+ *    the parent transaction context (which would cause LazyInitializationException
+ *    when accessing LAZY-loaded associations inside the notification service).
+ *    Requires @EnableAsync on the main application class.
  */
 @Component
 @RequiredArgsConstructor
@@ -26,61 +36,66 @@ public class SessionNotificationListener {
 
     private final NotificationService notificationService;
 
-    @EventListener
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleSessionAccepted(SessionAcceptedEvent event) {
-        log.info("📥 Domain Event Received: SessionAcceptedEvent for session ID {}", event.getSessionId());
+        log.info("📥 [AFTER_COMMIT] SessionAcceptedEvent for session ID {}", event.getSessionId());
         try {
             notificationService.notifySessionAccepted(
-                    event.getRequesterId(), // Recipient who gets notified (the learner)
-                    event.getProviderId(),  // The teacher who accepted
+                    event.getRequesterId(), // Recipient: the learner who made the request
+                    event.getProviderId(),  // Actor: the teacher who accepted
                     event.getSessionId(),
                     event.getSkillName()
             );
-            log.info("✅ Successfully processed SessionAcceptedEvent for session ID {}", event.getSessionId());
+            log.info("✅ Processed SessionAcceptedEvent for session ID {}", event.getSessionId());
         } catch (Exception ex) {
-            log.error("❌ Error processing SessionAcceptedEvent: {}", ex.getMessage(), ex);
+            log.error("❌ Error processing SessionAcceptedEvent for session {}: {}",
+                    event.getSessionId(), ex.getMessage(), ex);
         }
     }
 
-    @EventListener
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleSessionCompleted(SessionCompletedEvent event) {
-        log.info("📥 Domain Event Received: SessionCompletedEvent for session ID {}", event.getSessionId());
+        log.info("📥 [AFTER_COMMIT] SessionCompletedEvent for session ID {}", event.getSessionId());
         try {
-            // Notify the requester that the session is completed
+            // Notify the requester (learner)
             notificationService.notifySessionCompleted(
                     event.getRequesterId(),
                     event.getProviderId(),
                     event.getSessionId(),
                     event.getSkillName()
             );
-            
-            // Optionally, also notify the provider
+            // Notify the provider (teacher)
             notificationService.notifySessionCompleted(
                     event.getProviderId(),
                     event.getRequesterId(),
                     event.getSessionId(),
                     event.getSkillName()
             );
-            log.info("✅ Successfully processed SessionCompletedEvent for session ID {}", event.getSessionId());
+            log.info("✅ Processed SessionCompletedEvent for session ID {}", event.getSessionId());
         } catch (Exception ex) {
-            log.error("❌ Error processing SessionCompletedEvent: {}", ex.getMessage(), ex);
+            log.error("❌ Error processing SessionCompletedEvent for session {}: {}",
+                    event.getSessionId(), ex.getMessage(), ex);
         }
     }
 
-    @EventListener
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleSessionCancelled(SessionCancelledEvent event) {
-        log.info("📥 Domain Event Received: SessionCancelledEvent for session ID {}", event.getSessionId());
+        log.info("📥 [AFTER_COMMIT] SessionCancelledEvent for session ID {}", event.getSessionId());
         try {
             notificationService.notifySessionCancelled(
-                    event.getOtherPartyId(), // Recipient who gets notified (the other party)
-                    event.getCancelledById(), // The user who initiated the cancellation
+                    event.getOtherPartyId(),   // Recipient: the other party
+                    event.getCancelledById(),  // Actor: who cancelled
                     event.getSessionId(),
                     event.getSkillName(),
                     event.getReason()
             );
-            log.info("✅ Successfully processed SessionCancelledEvent for session ID {}", event.getSessionId());
+            log.info("✅ Processed SessionCancelledEvent for session ID {}", event.getSessionId());
         } catch (Exception ex) {
-            log.error("❌ Error processing SessionCancelledEvent: {}", ex.getMessage(), ex);
+            log.error("❌ Error processing SessionCancelledEvent for session {}: {}",
+                    event.getSessionId(), ex.getMessage(), ex);
         }
     }
 }

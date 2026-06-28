@@ -515,25 +515,21 @@ public class SessionServiceImpl implements SessionService {
         // COMPLETED SESSION COUNT
         // ==========================================
 
-        requester.setCompletedSessions(
-                requester.getCompletedSessions() + 1
-        );
+        int reqSessions = requester.getCompletedSessions() == null ? 0 : requester.getCompletedSessions();
+        requester.setCompletedSessions(reqSessions + 1);
 
-        provider.setCompletedSessions(
-                provider.getCompletedSessions() + 1
-        );
+        int provSessions = provider.getCompletedSessions() == null ? 0 : provider.getCompletedSessions();
+        provider.setCompletedSessions(provSessions + 1);
 
         // ==========================================
         // GAMIFICATION
         // ==========================================
 
-        requester.setPoints(
-                requester.getPoints() + 10
-        );
+        int reqPoints = requester.getPoints() == null ? 0 : requester.getPoints();
+        requester.setPoints(reqPoints + 10);
 
-        provider.setPoints(
-                provider.getPoints() + 15
-        );
+        int provPoints = provider.getPoints() == null ? 0 : provider.getPoints();
+        provider.setPoints(provPoints + 15);
     }
 
     @Override

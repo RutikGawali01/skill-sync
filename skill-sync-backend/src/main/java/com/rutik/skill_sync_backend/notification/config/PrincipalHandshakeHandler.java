@@ -10,6 +10,12 @@ import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 import java.security.Principal;
 import java.util.Map;
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Custom Handshake Handler mapping authenticated users to STOMP principals.
  * This assigns the user ID string as the Principal name, which allows target delivery
@@ -27,27 +33,17 @@ public class PrincipalHandshakeHandler extends DefaultHandshakeHandler {
         User user = (User) attributes.get("ws_user");
         if (user != null) {
             String principalName = user.getId().toString();
-            log.info("👤 WebSocket session mapped to StompPrincipal name (userId): {}", principalName);
-            return new StompPrincipal(principalName);
+            log.info("👤 WebSocket session mapped to principal name (userId): {}", principalName);
+            
+            // Extract the user's role into a GrantedAuthority
+            List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
+            
+            // IMPORTANT: Spring Security 6 .authenticated() requires an actual Authentication object,
+            // not just a simple java.security.Principal. UsernamePasswordAuthenticationToken satisfies both.
+            return new UsernamePasswordAuthenticationToken(principalName, null, authorities);
         }
 
         log.warn("⚠️ No user found in session attributes, WebSocket session will remain anonymous");
         return null;
-    }
-
-    /**
-     * Simple implementation of java.security.Principal to represent a STOMP user.
-     */
-    private static class StompPrincipal implements Principal {
-        private final String name;
-
-        public StompPrincipal(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public String getName() {
-            return name;
-        }
     }
 }

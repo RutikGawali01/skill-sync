@@ -246,7 +246,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     private NotificationResponseDto saveAndPush(Notification notification, Long recipientId) {
         // save notification
-        Notification saved = notificationRepository.save(notification);
+        Notification saved = notificationRepository.saveAndFlush(notification);
         log.info("💾 Notification saved successfully with ID: {}", saved.getId());
 
         NotificationResponseDto responseDto = notificationMapper.toResponseDto(saved);
