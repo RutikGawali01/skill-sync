@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { User, Mail, Lock, FileText, Eye, EyeOff, Loader2, CheckCircle } from 'lucide-react';
 import { register } from '../../services/authService';
 import { setAuth } from '../../redux/authSlice';
-import { decodeToken } from '../../utils/tokenUtils';
+import { decodeToken, tokenService } from '../../utils/tokenUtils';
 import GoogleAuthButton from './GoogleAuthButton';
 
 const RegisterForm = () => {
@@ -47,6 +47,7 @@ const RegisterForm = () => {
        * Browser stores this automatically (no JS access) — sent back on every /api/auth/* request.
        */
       const { accessToken } = response.data.data;
+      tokenService.set(accessToken);
 
       // Decode JWT payload: { sub: userId, email, role, tokenVersion }
       const user = decodeToken(accessToken);

@@ -36,4 +36,6 @@ public interface UserSkillRepository extends JpaRepository<UserSkill, Long> {
     List<UserSkill> findByUserIdAndIsVerifiedTrue(
             Long userId
     );
+
+    List<UserSkill> findByUserIdIn(List<Long> userIds);
 }

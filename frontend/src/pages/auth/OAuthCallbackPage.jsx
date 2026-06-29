@@ -4,6 +4,7 @@ import { useDispatch } from 'react-redux';
 import { motion } from 'framer-motion';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { setAuth } from '../../redux/authSlice';
+import { tokenService } from '../../utils/tokenUtils';
 
 /**
  * OAuthCallbackPage
@@ -30,6 +31,7 @@ const OAuthCallbackPage = () => {
     }
 
     // Dispatch to Redux + persist to localStorage via authSlice
+    tokenService.set(token);
     dispatch(setAuth({
       token,
       user: { name, email },

@@ -80,7 +80,7 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         // 🔥 invalidate old tokens
-        user.setTokenVersion(user.getTokenVersion() + 1);
+        user.setTokenVersion((user.getTokenVersion() == null ? 0 : user.getTokenVersion()) + 1);
         userRepository.save(user);
 
         return generateAuthResponse(user);
@@ -110,7 +110,7 @@ public class AuthServiceImpl implements AuthService {
 
         // 🔥 invalidate ALL sessions
         User user = rt.getUser();
-        user.setTokenVersion(user.getTokenVersion() + 1);
+        user.setTokenVersion((user.getTokenVersion() == null ? 0 : user.getTokenVersion()) + 1);
         userRepository.save(user);
 
         refreshService.revokeAllUserTokens(user);

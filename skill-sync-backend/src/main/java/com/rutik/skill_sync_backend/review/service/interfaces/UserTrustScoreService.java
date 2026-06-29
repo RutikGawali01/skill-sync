@@ -9,7 +9,7 @@ public interface UserTrustScoreService {
 
     void updateTrustMetrics(User user, Review review);
 
-
+    void calculateTrustScore(User user);
 
     UserTrustScoreResponseDto getUserTrustScore(
             Long userId

@@ -1,0 +1,3 @@
+logging:
+  level:
+    com.rutik.skill_sync_backend: DEBUG

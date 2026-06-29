@@ -143,6 +143,15 @@ const SessionBookingForm = ({
       }
     }
 
+    // Validate that the combined start date and time is in the future
+    if (date && startTime) {
+      const dateStr = dayjs(date).format('YYYY-MM-DD');
+      const startDateTime = dayjs(`${dateStr}T${startTime}:00`);
+      if (startDateTime.isBefore(dayjs())) {
+        newErrors.startTime = 'Start time must be in the future';
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }, [date, startTime, endTime, providerSlots]);
@@ -221,6 +230,11 @@ const SessionBookingForm = ({
         value={date}
         onChange={handleDateChange}
         excludeDate={excludeDateFn}
+        minDate={(() => {
+          const d = new Date();
+          d.setHours(0, 0, 0, 0);
+          return d;
+        })()}
         error={errors.date}
         leftSection={<Calendar style={{ width: 16, height: 16 }} />}
         radius="md"

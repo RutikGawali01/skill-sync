@@ -4,14 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import java.util.List;
 
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MatchResponseDTO {
-    private MatchCandidateDTO candidate;
-    private String matchType; // "BASIC" or "MUTUAL"
-    private BasicMatchDTO basicMatch;
-    private MutualMatchDTO mutualMatch;
+public class BasicMatchDTO {
+    private List<String> matchingSkills;
 }

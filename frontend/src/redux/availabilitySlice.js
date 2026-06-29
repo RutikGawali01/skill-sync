@@ -100,6 +100,7 @@ const availabilitySlice = createSlice({
   initialState: {
     slots:      [],
     loading:    false,
+    loaded:     false,
     creating:   false,
     updatingId: null,    // id being updated (per-slot spinner)
     deletingId: null,    // id being deleted (per-slot spinner)
@@ -119,10 +120,12 @@ const availabilitySlice = createSlice({
       })
       .addCase(fetchAvailability.fulfilled, (state, action) => {
         state.loading = false;
+        state.loaded  = true;
         state.slots   = action.payload ?? [];
       })
       .addCase(fetchAvailability.rejected, (state, action) => {
         state.loading = false;
+        state.loaded  = true;
         state.error   = action.payload;
       });
 
@@ -176,6 +179,7 @@ export default availabilitySlice.reducer;
 // ── Selectors ─────────────────────────────────────────────────────────────────
 export const selectAvailabilitySlots    = (state) => state.availability.slots;
 export const selectAvailabilityLoading  = (state) => state.availability.loading;
+export const selectAvailabilityLoaded   = (state) => state.availability.loaded;
 export const selectAvailabilityCreating = (state) => state.availability.creating;
 export const selectAvailabilityUpdating = (state) => state.availability.updatingId;
 export const selectAvailabilityDeleting = (state) => state.availability.deletingId;

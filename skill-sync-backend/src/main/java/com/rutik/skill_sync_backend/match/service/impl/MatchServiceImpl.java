@@ -18,6 +18,11 @@ import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
+import com.rutik.skill_sync_backend.match.dto.MatchResponseDTO;
+import com.rutik.skill_sync_backend.match.strategy.MatchStrategy;
+import com.rutik.skill_sync_backend.match.engine.EligibilityFilter;
+import com.rutik.skill_sync_backend.match.model.MatchContext;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +32,8 @@ public class MatchServiceImpl implements MatchService {
     private final UserRepository userRepository;
     private final UserSkillRepository userSkillRepository;
     private final MatchRepository matchRepository;
+    private final List<MatchStrategy> strategies;
+    private final EligibilityFilter eligibilityFilter;
 
     @Override
     @Transactional
@@ -194,5 +201,78 @@ public class MatchServiceImpl implements MatchService {
                 .build();
 
         matchRepository.save(match);
+    }
+
+    @Override
+    @Transactional
+    public List<MatchResponseDTO> findBasicMatches(Long userId) {
+        log.info("Finding basic matches for userId={}", userId);
+        return findMatchesUsingStrategy(userId, "basic");
+    }
+
+    @Override
+    @Transactional
+    public List<MatchResponseDTO> findMutualMatches(Long userId) {
+        log.info("Finding mutual matches for userId={}", userId);
+        return findMatchesUsingStrategy(userId, "mutual");
+    }
+
+    private List<MatchResponseDTO> findMatchesUsingStrategy(Long userId, String strategyName) {
+        if (userId == null) {
+            throw new BadRequestException("UserId must not be null");
+        }
+
+        User currentUser = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        // Get user wanted skills
+        List<UserSkill> mySkills = userSkillRepository.findByUserId(userId);
+        List<UserSkill> myWants = mySkills.stream()
+                .filter(us -> us.getType() == SkillType.WANT)
+                .toList();
+
+        if (myWants.isEmpty()) {
+            log.warn("User has no wanted skills. userId={}", userId);
+            return List.of();
+        }
+
+        List<Long> wantSkillIds = myWants.stream()
+                .map(us -> us.getSkill().getId())
+                .toList();
+
+        // 1. Candidate Discovery
+        List<User> rawCandidates = userRepository.findCandidatesForMatching(wantSkillIds, userId);
+
+        // 2. Eligibility Filter
+        List<User> eligibleCandidates = eligibilityFilter.filter(rawCandidates);
+
+        if (eligibleCandidates.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> candidateIds = eligibleCandidates.stream()
+                .map(User::getId)
+                .toList();
+
+        // Avoid N+1 select: fetch all candidate skills in one query
+        List<UserSkill> candidateSkills = userSkillRepository.findByUserIdIn(candidateIds);
+        Map<Long, List<UserSkill>> candidateSkillsMap = candidateSkills.stream()
+                .collect(Collectors.groupingBy(us -> us.getUser().getId()));
+
+        // Create MatchContext
+        MatchContext context = MatchContext.builder()
+                .currentUser(currentUser)
+                .currentUserSkills(mySkills)
+                .candidates(eligibleCandidates)
+                .candidateSkillsMap(candidateSkillsMap)
+                .build();
+
+        // Apply selected strategy
+        MatchStrategy strategy = strategies.stream()
+                .filter(s -> s.supports(strategyName))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Matching strategy not found: " + strategyName));
+
+        return strategy.match(context);
     }
 }

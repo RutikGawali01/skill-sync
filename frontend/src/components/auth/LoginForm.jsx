@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, Loader2, X, AlertCircle, ArrowRight } from 'lucide-react';
 import { login } from '../../services/authService';
 import { setAuth } from '../../redux/authSlice';
-import { decodeToken } from '../../utils/tokenUtils';
+import { decodeToken, tokenService } from '../../utils/tokenUtils';
 import GoogleAuthButton from './GoogleAuthButton';
 
 /**
@@ -55,6 +55,7 @@ const LoginForm = () => {
     try {
       const response = await login(form);
       const { accessToken } = response.data.data;
+      tokenService.set(accessToken);
       const user = decodeToken(accessToken);
       dispatch(setAuth({ token: accessToken, user }));
       navigate('/skills');

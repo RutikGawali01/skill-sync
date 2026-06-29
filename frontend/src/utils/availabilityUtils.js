@@ -16,6 +16,8 @@
 
 // ── Weekday Mapping ───────────────────────────────────────────────────────────
 
+import dayjs from 'dayjs';
+
 /**
  * Maps backend DayOfWeek enum strings to JS Date.getDay() values.
  * JS: 0=Sunday, 1=Monday, …, 6=Saturday
@@ -145,6 +147,7 @@ export const getTimeOptions = (slots, date, type = 'start', startTime = null) =>
   if (daySlots.length === 0) return [];
 
   const options = [];
+  const isToday = dayjs(date).isSame(dayjs(), 'day');
 
   for (const slot of daySlots) {
     const [startH, startM] = slot.startTime.split(':').map(Number);
@@ -154,6 +157,13 @@ export const getTimeOptions = (slots, date, type = 'start', startTime = null) =>
 
     // Generate 30-minute increments
     for (let mins = slotStartMins; mins < slotEndMins; mins += 30) {
+      // For today: filter out times in the past
+      if (isToday) {
+        const now = dayjs();
+        const currentMins = now.hour() * 60 + now.minute();
+        if (mins <= currentMins) continue;
+      }
+
       // For end time: skip options ≤ selected start time, and include the slot end
       if (type === 'end' && startTime) {
         const [sh, sm] = startTime.split(':').map(Number);

@@ -9,9 +9,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MatchResponseDTO {
-    private MatchCandidateDTO candidate;
-    private String matchType; // "BASIC" or "MUTUAL"
-    private BasicMatchDTO basicMatch;
-    private MutualMatchDTO mutualMatch;
+public class ExchangeSkillDTO {
+    private String skillName;
+    private String direction; // "GIVE" or "TAKE"
+    private String level; // "BEGINNER", "INTERMEDIATE", "ADVANCED"
 }

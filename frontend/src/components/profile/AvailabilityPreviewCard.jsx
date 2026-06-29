@@ -31,6 +31,7 @@ import {
   fetchAvailability,
   selectAvailabilitySlots,
   selectAvailabilityLoading,
+  selectAvailabilityLoaded,
 } from '../../redux/availabilitySlice';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -128,10 +129,10 @@ const EmptyState = ({ isDark, onManage }) => (
         <IconCalendarOff size={28} color={isDark ? '#a78bfa' : '#8b5cf6'} />
       </Box>
       <Text fw={600} size="sm" style={{ color: isDark ? '#e2e8f0' : '#1e293b' }}>
-        No availability added yet
+        No availability has been added yet.
       </Text>
-      <Text size="xs" ta="center" style={{ color: isDark ? '#94a3b8' : '#64748b', maxWidth: 240 }}>
-        Set your weekly schedule to get matched with skill exchange partners.
+      <Text size="xs" ta="center" style={{ color: isDark ? '#94a3b8' : '#64748b', maxWidth: 320 }}>
+        Add your available days and time slots so other users can schedule sessions with you.
       </Text>
       <Button
         onClick={onManage}
@@ -142,7 +143,7 @@ const EmptyState = ({ isDark, onManage }) => (
         rightSection={<IconArrowRight size={14} />}
         mt={4}
       >
-        Set Availability
+        Add Availability
       </Button>
     </Stack>
   </Center>
@@ -155,14 +156,15 @@ const AvailabilityPreviewCard = ({ isDark }) => {
   const navigate  = useNavigate();
   const slots     = useSelector(selectAvailabilitySlots);
   const loading   = useSelector(selectAvailabilityLoading);
+  const loaded    = useSelector(selectAvailabilityLoaded);
   const userId    = useSelector((state) => state.auth.user?.id);
 
   // Fetch availability if not already loaded (reuses global state)
   useEffect(() => {
-    if (userId && slots.length === 0 && !loading) {
+    if (userId && !loaded && !loading) {
       dispatch(fetchAvailability(userId));
     }
-  }, [dispatch, userId, slots.length, loading]);
+  }, [dispatch, userId, loaded, loading]);
 
   const handleManage = () => navigate('/availability');
 

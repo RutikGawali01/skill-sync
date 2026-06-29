@@ -1,4 +1,4 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import authReducer from './authSlice';
 import profileReducer from './profileSlice';
 import skillReducer from './skillSlice';
@@ -9,18 +9,27 @@ import reviewReducer from './review/reviewSlice';
 import trustReducer from './review/trustSlice';
 import notificationReducer from './notification/notificationSlice';
 
+const appReducer = combineReducers({
+  auth:         authReducer,
+  profile:      profileReducer,
+  skills:       skillReducer,
+  verification: verificationReducer,
+  availability: availabilityReducer,
+  sessions:     sessionReducer,
+  reviews:       reviewReducer,
+  trust:         trustReducer,
+  notifications: notificationReducer,
+});
+
+const rootReducer = (state, action) => {
+  if (action.type === 'auth/logout') {
+    state = undefined;
+  }
+  return appReducer(state, action);
+};
+
 const store = configureStore({
-  reducer: {
-    auth:         authReducer,
-    profile:      profileReducer,
-    skills:       skillReducer,
-    verification: verificationReducer,
-    availability: availabilityReducer,
-    sessions:     sessionReducer,
-    reviews:       reviewReducer,
-    trust:         trustReducer,
-    notifications: notificationReducer,
-  },
+  reducer: rootReducer,
 });
 
 export default store;
