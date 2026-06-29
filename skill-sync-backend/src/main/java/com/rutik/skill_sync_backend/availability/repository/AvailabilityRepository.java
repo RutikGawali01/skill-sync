@@ -13,6 +13,8 @@ public interface AvailabilityRepository extends JpaRepository<Availability, Long
 
     List<Availability> findByUserIdOrderByDayAscStartTimeAsc(Long userId);
 
+    List<Availability> findByUserIn(java.util.Collection<com.rutik.skill_sync_backend.user.entity.User> users);
+
     // 🔥 OVERLAP DETECTION QUERY
     @Query("""
             SELECT COUNT(a) > 0

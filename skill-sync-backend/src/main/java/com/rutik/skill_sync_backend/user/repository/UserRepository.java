@@ -3,6 +3,7 @@ package com.rutik.skill_sync_backend.user.repository;
 import com.rutik.skill_sync_backend.user.entity.User;
 
 import java.util.Optional;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

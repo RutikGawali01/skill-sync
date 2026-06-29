@@ -3,7 +3,7 @@ package com.rutik.skill_sync_backend.match.strategy;
 import com.rutik.skill_sync_backend.match.dto.BasicMatchDTO;
 import com.rutik.skill_sync_backend.match.dto.MatchResponseDTO;
 import com.rutik.skill_sync_backend.match.mapper.MatchMapper;
-import com.rutik.skill_sync_backend.match.model.MatchContext;
+import com.rutik.skill_sync_backend.match.model.MatchStrategyContext;
 import com.rutik.skill_sync_backend.skill.entity.UserSkill;
 import com.rutik.skill_sync_backend.skill.enums.SkillType;
 import com.rutik.skill_sync_backend.user.entity.User;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 public class BasicMatchStrategy implements MatchStrategy {
 
     @Override
-    public List<MatchResponseDTO> match(MatchContext context) {
+    public List<MatchResponseDTO> match(MatchStrategyContext context) {
         if (context.getCandidates() == null || context.getCandidates().isEmpty()) {
             return List.of();
         }

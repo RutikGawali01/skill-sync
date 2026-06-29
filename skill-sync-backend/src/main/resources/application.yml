@@ -9,3 +9,12 @@ spring:
             scope:
               - email
               - profile
+
+match:
+  weights:
+    skill: 40.0
+    trust: 20.0
+    rating: 15.0
+    availability: 10.0
+    experience: 10.0
+    activity: 5.0

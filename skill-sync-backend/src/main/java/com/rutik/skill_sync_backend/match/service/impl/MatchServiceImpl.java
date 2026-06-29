@@ -2,7 +2,6 @@ package com.rutik.skill_sync_backend.match.service.impl;
 
 import com.rutik.skill_sync_backend.common.exception.BadRequestException;
 import com.rutik.skill_sync_backend.common.exception.ResourceNotFoundException;
-import com.rutik.skill_sync_backend.match.dto.MatchResponseDto;
 import com.rutik.skill_sync_backend.match.entity.Match;
 import com.rutik.skill_sync_backend.match.repository.MatchRepository;
 import com.rutik.skill_sync_backend.match.service.interfaces.MatchService;
@@ -20,9 +19,18 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import com.rutik.skill_sync_backend.match.dto.MatchResponseDTO;
+import com.rutik.skill_sync_backend.match.dto.RecommendationDTO;
 import com.rutik.skill_sync_backend.match.strategy.MatchStrategy;
 import com.rutik.skill_sync_backend.match.engine.EligibilityFilter;
-import com.rutik.skill_sync_backend.match.model.MatchContext;
+import com.rutik.skill_sync_backend.match.engine.RecommendationEngine;
+import com.rutik.skill_sync_backend.match.engine.RankingEngine;
+import com.rutik.skill_sync_backend.match.model.MatchStrategyContext;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import com.rutik.skill_sync_backend.review.entity.UserTrustScore;
+import com.rutik.skill_sync_backend.review.repository.UserTrustScoreRepository;
+import com.rutik.skill_sync_backend.availability.entity.Availability;
+import com.rutik.skill_sync_backend.availability.repository.AvailabilityRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -34,10 +42,14 @@ public class MatchServiceImpl implements MatchService {
     private final MatchRepository matchRepository;
     private final List<MatchStrategy> strategies;
     private final EligibilityFilter eligibilityFilter;
+    private final UserTrustScoreRepository trustScoreRepository;
+    private final AvailabilityRepository availabilityRepository;
+    private final RecommendationEngine recommendationEngine;
+    private final RankingEngine rankingEngine;
 
     @Override
     @Transactional
-    public List<MatchResponseDto> findMatches(Long userId) {
+    public List<MatchResponseDTO> findMatches(Long userId) {
 
         log.info("Finding matches for userId={}", userId);
 
@@ -144,13 +156,12 @@ public class MatchServiceImpl implements MatchService {
 
                     saveMatchIfNotExists(currentUser, matchedUser, entry.getValue());
 
-                    return MatchResponseDto.builder()
-                            .userId(matchedUser.getId())
-                            .name(matchedUser.getName())
+                    return MatchResponseDTO.builder()
+                            .candidate(com.rutik.skill_sync_backend.match.mapper.MatchMapper.toCandidateDTO(matchedUser))
                             .score(entry.getValue())
                             .build();
                 })
-                .sorted(Comparator.comparingDouble(MatchResponseDto::getScore).reversed())
+                .sorted(Comparator.comparingDouble(MatchResponseDTO::getScore).reversed())
                 .toList();
     }
 
@@ -259,8 +270,8 @@ public class MatchServiceImpl implements MatchService {
         Map<Long, List<UserSkill>> candidateSkillsMap = candidateSkills.stream()
                 .collect(Collectors.groupingBy(us -> us.getUser().getId()));
 
-        // Create MatchContext
-        MatchContext context = MatchContext.builder()
+        // Create MatchStrategyContext
+        MatchStrategyContext context = MatchStrategyContext.builder()
                 .currentUser(currentUser)
                 .currentUserSkills(mySkills)
                 .candidates(eligibleCandidates)
@@ -274,5 +285,19 @@ public class MatchServiceImpl implements MatchService {
                 .orElseThrow(() -> new IllegalStateException("Matching strategy not found: " + strategyName));
 
         return strategy.match(context);
+    }
+
+    @Override
+    @Transactional
+    public Page<RecommendationDTO> getRecommendations(Long userId, Pageable pageable) {
+        log.info("Generating recommendations for userId={}, pageable={}", userId, pageable);
+        return recommendationEngine.getRecommendations(userId, pageable);
+    }
+
+    @Override
+    @Transactional
+    public Page<RecommendationDTO> getRankedMatches(Long userId, Pageable pageable) {
+        log.info("Generating ranked matches for userId={}, pageable={}", userId, pageable);
+        return recommendationEngine.getRecommendations(userId, pageable);
     }
 }
