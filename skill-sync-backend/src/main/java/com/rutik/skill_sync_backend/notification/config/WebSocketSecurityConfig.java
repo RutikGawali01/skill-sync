@@ -60,7 +60,13 @@ public class WebSocketSecurityConfig {
                 // Secure user queue subscriptions — principal set by PrincipalHandshakeHandler
                 .simpSubscribeDestMatchers(
                         "/user/queue/notifications",
-                        "/user/queue/notifications/count"
+                        "/user/queue/notifications/count",
+                        "/user/queue/chat/**"
+                ).authenticated()
+
+                // Permit inbound chat publishing destinations
+                .simpDestMatchers(
+                        "/app/chat/**"
                 ).authenticated()
 
                 // Deny any client publishing or arbitrary subscriptions

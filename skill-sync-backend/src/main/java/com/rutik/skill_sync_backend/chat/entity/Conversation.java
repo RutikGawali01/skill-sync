@@ -1,21 +1,21 @@
 package com.rutik.skill_sync_backend.chat.entity;
 
-import com.rutik.skill_sync_backend.chat.enums.MessageStatus;
-import com.rutik.skill_sync_backend.chat.enums.MessageType;
-import com.rutik.skill_sync_backend.user.entity.User;
+import com.rutik.skill_sync_backend.chat.enums.ConversationStatus;
+import com.rutik.skill_sync_backend.chat.enums.ConversationType;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
 
 /**
- * JPA entity representing a Message inside a Conversation.
+ * JPA entity representing a Conversation.
  */
 @Entity
 @Table(
-    name = "messages",
+    name = "conversations",
     indexes = {
-        @Index(name = "idx_message_conversation_created", columnList = "conversation_id, createdAt")
+        @Index(name = "idx_conversation_status", columnList = "status"),
+        @Index(name = "idx_conversation_type", columnList = "type")
     }
 )
 @Getter
@@ -23,30 +23,19 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Message {
+public class Conversation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "conversation_id", nullable = false)
-    private Conversation conversation;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sender_id", nullable = false)
-    private User sender;
-
-    @Column(nullable = false, length = 4000)
-    private String content;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ConversationStatus status;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MessageType type;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private MessageStatus status;
+    private ConversationType type;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -57,15 +46,18 @@ public class Message {
     @Builder.Default
     private boolean deleted = false;
 
+    @Version
+    private Long version;
+
     @PrePersist
     public void onCreate() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
-        if (this.type == null) {
-            this.type = MessageType.TEXT;
-        }
         if (this.status == null) {
-            this.status = MessageStatus.SENT;
+            this.status = ConversationStatus.ACTIVE;
+        }
+        if (this.type == null) {
+            this.type = ConversationType.DIRECT;
         }
     }
 
