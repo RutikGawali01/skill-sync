@@ -8,6 +8,7 @@ import sessionReducer from './session/sessionSlice';
 import reviewReducer from './review/reviewSlice';
 import trustReducer from './review/trustSlice';
 import notificationReducer from './notification/notificationSlice';
+import matchReducer from './matchSlice';
 
 const appReducer = combineReducers({
   auth:         authReducer,
@@ -19,6 +20,7 @@ const appReducer = combineReducers({
   reviews:       reviewReducer,
   trust:         trustReducer,
   notifications: notificationReducer,
+  matches:       matchReducer,
 });
 
 const rootReducer = (state, action) => {

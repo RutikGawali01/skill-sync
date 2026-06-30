@@ -88,3 +88,6 @@ Thumbs.db
 # ==========================================
 
 out/
+
+# Documentation
+matching_engine_onboarding.md

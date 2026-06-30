@@ -1,11 +1,9 @@
 package com.rutik.skill_sync_backend.match.service.interfaces;
 
 
+import com.rutik.skill_sync_backend.common.dto.PageResponse;
 import com.rutik.skill_sync_backend.match.dto.MatchResponseDTO;
 import com.rutik.skill_sync_backend.match.dto.RecommendationDTO;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -15,9 +13,30 @@ public interface MatchService {
 
     List<MatchResponseDTO> findBasicMatches(Long userId);
 
-    List<MatchResponseDTO> findMutualMatches(Long userId);
+    PageResponse<MatchResponseDTO> findMutualMatches(
+            Long userId,
+            int page,
+            int size,
+            String search,
+            String sortBy,
+            String sortDir
+    );
 
-    Page<RecommendationDTO> getRecommendations(Long userId, Pageable pageable);
+    PageResponse<RecommendationDTO> getRecommendations(
+            Long userId,
+            int page,
+            int size,
+            String search,
+            String sortBy,
+            String sortDir
+    );
 
-    Page<RecommendationDTO> getRankedMatches(Long userId, Pageable pageable);
+    PageResponse<RecommendationDTO> getRankedMatches(
+            Long userId,
+            int page,
+            int size,
+            String search,
+            String sortBy,
+            String sortDir
+    );
 }

@@ -1,5 +1,6 @@
 package com.rutik.skill_sync_backend.skill.controller;
 
+import com.rutik.skill_sync_backend.common.dto.PageResponse;
 import com.rutik.skill_sync_backend.common.response.ApiResponse;
 import com.rutik.skill_sync_backend.skill.dto.*;
 import com.rutik.skill_sync_backend.skill.service.SkillService;
@@ -35,10 +36,16 @@ public class SkillController {
     // wants to learn - should be selected  based on current logged-in user's OFFER skills
 //    this can be integrated after matching engine
     @GetMapping("/explore")
-    public ResponseEntity<ApiResponse<List<ExploreSkillResponseDto>>> getExploreSkills() {
+    public ResponseEntity<ApiResponse<PageResponse<ExploreSkillResponseDto>>> getExploreSkills(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir
+    ) {
 
-        List<ExploreSkillResponseDto> skills =
-                skillService.getExploreSkills();
+        PageResponse<ExploreSkillResponseDto> skills =
+                skillService.getExploreSkills(page, size, search, sortBy, sortDir);
 
         return ResponseEntity.ok(
                 ApiResponse.success(

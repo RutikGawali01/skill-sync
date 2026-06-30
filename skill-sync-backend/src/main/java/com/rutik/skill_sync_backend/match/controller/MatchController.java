@@ -11,9 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.PageRequest;
+import com.rutik.skill_sync_backend.common.dto.PageResponse;
 import com.rutik.skill_sync_backend.match.dto.RecommendationDTO;
 
 import java.util.List;
@@ -41,33 +39,50 @@ public class MatchController {
     }
 
     @GetMapping("/mutual")
-    public ApiResponse<List<MatchResponseDTO>> getMutualMatches(Authentication auth) {
-        User currentUser = (User) auth.getPrincipal();
-        List<MatchResponseDTO> matches = matchService.findMutualMatches(currentUser.getId());
-        return ApiResponse.success("Mutual matches fetched successfully", matches);
-    }
-
-    @GetMapping("/recommendations")
-    public ApiResponse<Page<RecommendationDTO>> getRecommendations(
+    public ApiResponse<PageResponse<MatchResponseDTO>> getMutualMatches(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "matchScore") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir,
             Authentication auth
     ) {
         User currentUser = (User) auth.getPrincipal();
-        Pageable pageable = PageRequest.of(page, size);
-        Page<RecommendationDTO> recommendations = matchService.getRecommendations(currentUser.getId(), pageable);
+        PageResponse<MatchResponseDTO> matches = matchService.findMutualMatches(
+                currentUser.getId(), page, size, search, sortBy, sortDir
+        );
+        return ApiResponse.success("Mutual matches fetched successfully", matches);
+    }
+
+    @GetMapping({"/recommendations", "/recommended"})
+    public ApiResponse<PageResponse<RecommendationDTO>> getRecommendations(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "matchScore") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir,
+            Authentication auth
+    ) {
+        User currentUser = (User) auth.getPrincipal();
+        PageResponse<RecommendationDTO> recommendations = matchService.getRecommendations(
+                currentUser.getId(), page, size, search, sortBy, sortDir
+        );
         return ApiResponse.success("Recommendations fetched successfully", recommendations);
     }
 
     @GetMapping("/ranked")
-    public ApiResponse<Page<RecommendationDTO>> getRankedMatches(
+    public ApiResponse<PageResponse<RecommendationDTO>> getRankedMatches(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "matchScore") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir,
             Authentication auth
     ) {
         User currentUser = (User) auth.getPrincipal();
-        Pageable pageable = PageRequest.of(page, size);
-        Page<RecommendationDTO> ranked = matchService.getRankedMatches(currentUser.getId(), pageable);
+        PageResponse<RecommendationDTO> ranked = matchService.getRankedMatches(
+                currentUser.getId(), page, size, search, sortBy, sortDir
+        );
         return ApiResponse.success("Ranked matches fetched successfully", ranked);
     }
 }

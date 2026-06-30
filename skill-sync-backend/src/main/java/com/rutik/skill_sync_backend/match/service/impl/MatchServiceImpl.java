@@ -25,6 +25,7 @@ import com.rutik.skill_sync_backend.match.engine.EligibilityFilter;
 import com.rutik.skill_sync_backend.match.engine.RecommendationEngine;
 import com.rutik.skill_sync_backend.match.engine.RankingEngine;
 import com.rutik.skill_sync_backend.match.model.MatchStrategyContext;
+import com.rutik.skill_sync_backend.common.dto.PageResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import com.rutik.skill_sync_backend.review.entity.UserTrustScore;
@@ -218,17 +219,85 @@ public class MatchServiceImpl implements MatchService {
     @Transactional
     public List<MatchResponseDTO> findBasicMatches(Long userId) {
         log.info("Finding basic matches for userId={}", userId);
-        return findMatchesUsingStrategy(userId, "basic");
+        return findMatchesUsingStrategy(userId, "basic", null);
     }
 
     @Override
     @Transactional
-    public List<MatchResponseDTO> findMutualMatches(Long userId) {
-        log.info("Finding mutual matches for userId={}", userId);
-        return findMatchesUsingStrategy(userId, "mutual");
+    public PageResponse<MatchResponseDTO> findMutualMatches(
+            Long userId,
+            int page,
+            int size,
+            String search,
+            String sortBy,
+            String sortDir
+    ) {
+        log.info("Finding mutual matches for userId={}, page={}, size={}, search={}, sortBy={}, sortDir={}", userId, page, size, search, sortBy, sortDir);
+
+        if (userId == null) {
+            throw new BadRequestException("UserId must not be null");
+        }
+
+        // 1. Validation
+        if (page < 0) {
+            throw new BadRequestException("Page index must not be less than zero");
+        }
+        if (size <= 0) {
+            throw new BadRequestException("Page size must be greater than zero");
+        }
+        if (size > 50) {
+            throw new BadRequestException("Page size must not be greater than 50");
+        }
+        String direction = sortDir.toLowerCase();
+        if (!direction.equals("asc") && !direction.equals("desc")) {
+            throw new BadRequestException("Invalid sort direction: " + sortDir + ". Allowed values are 'asc' or 'desc'");
+        }
+
+        String sortField = sortBy == null || sortBy.isBlank() ? "matchScore" : sortBy;
+        Set<String> allowedFields = Set.of("matchScore", "rating", "completedSessions", "name");
+        if (!allowedFields.contains(sortField)) {
+            throw new BadRequestException("Invalid sortBy field: '" + sortBy + "'. Allowed fields are: " + allowedFields);
+        }
+
+        List<MatchResponseDTO> allMatches = findMatchesUsingStrategy(userId, "mutual", search);
+
+        // Sort based on parameter
+        Comparator<MatchResponseDTO> comparator;
+        switch (sortField) {
+            case "rating":
+                comparator = Comparator.comparingDouble(r -> r.getCandidate().getRating() != null ? r.getCandidate().getRating() : 0.0);
+                break;
+            case "completedSessions":
+                comparator = Comparator.comparingInt(r -> r.getCandidate().getCompletedSessions() != null ? r.getCandidate().getCompletedSessions() : 0);
+                break;
+            case "name":
+                comparator = Comparator.comparing(r -> r.getCandidate().getName() != null ? r.getCandidate().getName().toLowerCase() : "");
+                break;
+            case "matchScore":
+            default:
+                comparator = Comparator.comparingDouble(r -> r.getScore() != null ? r.getScore() : 0.0);
+                break;
+        }
+
+        if ("desc".equals(direction)) {
+            comparator = comparator.reversed();
+        }
+
+        List<MatchResponseDTO> mutableMatches = new ArrayList<>(allMatches);
+        mutableMatches.sort(comparator);
+
+        int totalElements = mutableMatches.size();
+        int start = page * size;
+        int end = Math.min(start + size, totalElements);
+        List<MatchResponseDTO> paginatedList = List.of();
+        if (start < totalElements) {
+            paginatedList = mutableMatches.subList(start, end);
+        }
+
+        return PageResponse.from(paginatedList, page, size, totalElements);
     }
 
-    private List<MatchResponseDTO> findMatchesUsingStrategy(Long userId, String strategyName) {
+    private List<MatchResponseDTO> findMatchesUsingStrategy(Long userId, String strategyName, String search) {
         if (userId == null) {
             throw new BadRequestException("UserId must not be null");
         }
@@ -252,7 +321,12 @@ public class MatchServiceImpl implements MatchService {
                 .toList();
 
         // 1. Candidate Discovery
-        List<User> rawCandidates = userRepository.findCandidatesForMatching(wantSkillIds, userId);
+        List<User> rawCandidates;
+        if (search == null || search.isBlank()) {
+            rawCandidates = userRepository.findCandidatesForMatching(wantSkillIds, userId);
+        } else {
+            rawCandidates = userRepository.findCandidatesForMatchingWithSearch(wantSkillIds, userId, search.trim());
+        }
 
         // 2. Eligibility Filter
         List<User> eligibleCandidates = eligibilityFilter.filter(rawCandidates);
@@ -289,15 +363,29 @@ public class MatchServiceImpl implements MatchService {
 
     @Override
     @Transactional
-    public Page<RecommendationDTO> getRecommendations(Long userId, Pageable pageable) {
-        log.info("Generating recommendations for userId={}, pageable={}", userId, pageable);
-        return recommendationEngine.getRecommendations(userId, pageable);
+    public PageResponse<RecommendationDTO> getRecommendations(
+            Long userId,
+            int page,
+            int size,
+            String search,
+            String sortBy,
+            String sortDir
+    ) {
+        log.info("Generating recommendations for userId={}, page={}, size={}, search={}, sortBy={}, sortDir={}", userId, page, size, search, sortBy, sortDir);
+        return recommendationEngine.getRecommendations(userId, page, size, search, sortBy, sortDir);
     }
 
     @Override
     @Transactional
-    public Page<RecommendationDTO> getRankedMatches(Long userId, Pageable pageable) {
-        log.info("Generating ranked matches for userId={}, pageable={}", userId, pageable);
-        return recommendationEngine.getRecommendations(userId, pageable);
+    public PageResponse<RecommendationDTO> getRankedMatches(
+            Long userId,
+            int page,
+            int size,
+            String search,
+            String sortBy,
+            String sortDir
+    ) {
+        log.info("Generating ranked matches for userId={}, page={}, size={}, search={}, sortBy={}, sortDir={}", userId, page, size, search, sortBy, sortDir);
+        return recommendationEngine.getRecommendations(userId, page, size, search, sortBy, sortDir);
     }
 }

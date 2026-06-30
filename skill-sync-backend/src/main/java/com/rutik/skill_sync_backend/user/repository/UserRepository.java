@@ -53,4 +53,33 @@ public interface UserRepository extends JpaRepository<User, Long> {
         @Param("wantSkillIds") List<Long> wantSkillIds,
         @Param("currentUserId") Long currentUserId
     );
+
+    @Query("""
+        SELECT DISTINCT u FROM User u
+        JOIN u.userSkills us
+        WHERE us.type = com.rutik.skill_sync_backend.skill.enums.SkillType.OFFER
+        AND us.skill.id IN :wantSkillIds
+        AND u.id <> :currentUserId
+        AND u.isActive = true
+        AND (
+            LOWER(us.skill.name) LIKE LOWER(CONCAT('%', :search, '%')) OR
+            LOWER(str(us.skill.category)) LIKE LOWER(CONCAT('%', :search, '%')) OR
+            LOWER(u.name) LIKE LOWER(CONCAT('%', :search, '%'))
+        )
+        AND u.id NOT IN (
+            SELECT DISTINCT s.provider.id FROM Session s
+            WHERE s.requester.id = :currentUserId
+            AND s.status IN (com.rutik.skill_sync_backend.session.enums.SessionStatus.PENDING, com.rutik.skill_sync_backend.session.enums.SessionStatus.ACCEPTED)
+        )
+        AND u.id NOT IN (
+            SELECT DISTINCT s.requester.id FROM Session s
+            WHERE s.provider.id = :currentUserId
+            AND s.status IN (com.rutik.skill_sync_backend.session.enums.SessionStatus.PENDING, com.rutik.skill_sync_backend.session.enums.SessionStatus.ACCEPTED)
+        )
+    """)
+    List<User> findCandidatesForMatchingWithSearch(
+        @Param("wantSkillIds") List<Long> wantSkillIds,
+        @Param("currentUserId") Long currentUserId,
+        @Param("search") String search
+    );
 }

@@ -15,9 +15,7 @@ import com.rutik.skill_sync_backend.user.entity.User;
 import com.rutik.skill_sync_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import com.rutik.skill_sync_backend.common.dto.PageResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
 
@@ -39,12 +37,40 @@ public class RuleBasedRecommendationProvider implements RecommendationProvider {
     private final RankingEngine rankingEngine;
 
     @Override
-    public Page<RecommendationDTO> getRecommendations(Long userId, Pageable pageable) {
-        log.info("Matching started for user {}", userId);
+    public PageResponse<RecommendationDTO> getRecommendations(
+            Long userId,
+            int page,
+            int size,
+            String search,
+            String sortBy,
+            String sortDir
+    ) {
+        log.info("Matching started for user {}, page={}, size={}, search={}, sortBy={}, sortDir={}", userId, page, size, search, sortBy, sortDir);
         StopWatch stopWatch = new StopWatch("MatchingPipeline");
 
         if (userId == null) {
             throw new BadRequestException("UserId must not be null");
+        }
+
+        // 1. Validation
+        if (page < 0) {
+            throw new BadRequestException("Page index must not be less than zero");
+        }
+        if (size <= 0) {
+            throw new BadRequestException("Page size must be greater than zero");
+        }
+        if (size > 50) {
+            throw new BadRequestException("Page size must not be greater than 50");
+        }
+        String direction = sortDir.toLowerCase();
+        if (!direction.equals("asc") && !direction.equals("desc")) {
+            throw new BadRequestException("Invalid sort direction: " + sortDir + ". Allowed values are 'asc' or 'desc'");
+        }
+
+        String sortField = sortBy == null || sortBy.isBlank() ? "matchScore" : sortBy;
+        Set<String> allowedFields = Set.of("matchScore", "rating", "completedSessions", "name", "createdAt");
+        if (!allowedFields.contains(sortField)) {
+            throw new BadRequestException("Invalid sortBy field: '" + sortBy + "'. Allowed fields are: " + allowedFields);
         }
 
         stopWatch.start("FetchUser");
@@ -59,7 +85,7 @@ public class RuleBasedRecommendationProvider implements RecommendationProvider {
 
         if (myWants.isEmpty()) {
             log.warn("User has no wanted skills. userId={}", userId);
-            return new PageImpl<>(List.of(), pageable, 0);
+            return PageResponse.from(List.of(), page, size, 0);
         }
 
         List<Long> wantSkillIds = myWants.stream()
@@ -67,7 +93,12 @@ public class RuleBasedRecommendationProvider implements RecommendationProvider {
                 .toList();
 
         stopWatch.start("CandidateDiscovery");
-        List<User> rawCandidates = userRepository.findCandidatesForMatching(wantSkillIds, userId);
+        List<User> rawCandidates;
+        if (search == null || search.isBlank()) {
+            rawCandidates = userRepository.findCandidatesForMatching(wantSkillIds, userId);
+        } else {
+            rawCandidates = userRepository.findCandidatesForMatchingWithSearch(wantSkillIds, userId, search.trim());
+        }
         stopWatch.stop();
 
         stopWatch.start("EligibilityFilter");
@@ -77,7 +108,7 @@ public class RuleBasedRecommendationProvider implements RecommendationProvider {
         log.info("Candidate discovery completed: RawCount={}, EligibleCount={}", rawCandidates.size(), eligibleCandidates.size());
 
         if (eligibleCandidates.isEmpty()) {
-            return new PageImpl<>(List.of(), pageable, 0);
+            return PageResponse.from(List.of(), page, size, 0);
         }
 
         stopWatch.start("BulkFetchAuxiliaryData");
@@ -132,11 +163,43 @@ public class RuleBasedRecommendationProvider implements RecommendationProvider {
         List<RecommendationDTO> ranked = rankingEngine.rank(recommendations, candidateMap);
         stopWatch.stop();
 
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), ranked.size());
+        // Sort based on parameter
+        Comparator<RecommendationDTO> comparator;
+        switch (sortField) {
+            case "rating":
+                comparator = Comparator.comparingDouble(r -> r.getCandidate().getRating() != null ? r.getCandidate().getRating() : 0.0);
+                break;
+            case "completedSessions":
+                comparator = Comparator.comparingInt(r -> r.getCandidate().getCompletedSessions() != null ? r.getCandidate().getCompletedSessions() : 0);
+                break;
+            case "name":
+                comparator = Comparator.comparing(r -> r.getCandidate().getName() != null ? r.getCandidate().getName().toLowerCase() : "");
+                break;
+            case "createdAt":
+                comparator = Comparator.comparing((RecommendationDTO r) -> {
+                    User u = candidateMap.get(r.getCandidate().getId());
+                    return u != null && u.getCreatedAt() != null ? u.getCreatedAt() : java.time.LocalDateTime.MIN;
+                });
+                break;
+            case "matchScore":
+            default:
+                comparator = Comparator.comparingDouble(r -> r.getMatchScore() != null ? r.getMatchScore().getPercentage() : 0.0);
+                break;
+        }
+
+        if ("desc".equals(direction)) {
+            comparator = comparator.reversed();
+        }
+
+        List<RecommendationDTO> sortedRecommendations = new ArrayList<>(ranked);
+        sortedRecommendations.sort(comparator);
+
+        int totalElements = sortedRecommendations.size();
+        int start = page * size;
+        int end = Math.min(start + size, totalElements);
         List<RecommendationDTO> paginatedList = List.of();
-        if (start < ranked.size()) {
-            paginatedList = ranked.subList(start, end);
+        if (start < totalElements) {
+            paginatedList = sortedRecommendations.subList(start, end);
         }
 
         log.info("Matching completed in {} ms. Total Recommendations={}", stopWatch.getTotalTimeMillis(), ranked.size());
@@ -144,6 +207,6 @@ public class RuleBasedRecommendationProvider implements RecommendationProvider {
             log.debug("Time Breakdown: {}", stopWatch.prettyPrint());
         }
 
-        return new PageImpl<>(paginatedList, pageable, ranked.size());
+        return PageResponse.from(paginatedList, page, size, totalElements);
     }
 }

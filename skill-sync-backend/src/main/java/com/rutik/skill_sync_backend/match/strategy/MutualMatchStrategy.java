@@ -86,12 +86,25 @@ public class MutualMatchStrategy implements MatchStrategy {
                             .build());
                 }
 
+                // Calculate compatibility score (base 60 + up to 30 for rating + up to 10 for completed sessions)
+                double score = 60.0;
+                if (candidate.getRating() != null) {
+                    score += candidate.getRating() * 6.0;
+                }
+                if (candidate.getCompletedSessions() != null) {
+                    score += Math.min(candidate.getCompletedSessions() * 2.0, 10.0);
+                }
+                if (score > 100.0) {
+                    score = 100.0;
+                }
+
                 results.add(MatchResponseDTO.builder()
                         .candidate(MatchMapper.toCandidateDTO(candidate))
                         .matchType("MUTUAL")
                         .mutualMatch(MutualMatchDTO.builder()
                                 .exchangeSkills(exchangeSkills)
                                 .build())
+                        .score(score)
                         .build());
             }
         }

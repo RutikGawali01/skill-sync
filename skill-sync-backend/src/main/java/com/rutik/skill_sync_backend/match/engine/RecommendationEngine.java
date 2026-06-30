@@ -1,9 +1,8 @@
 package com.rutik.skill_sync_backend.match.engine;
 
 import com.rutik.skill_sync_backend.match.dto.RecommendationDTO;
+import com.rutik.skill_sync_backend.common.dto.PageResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -12,7 +11,14 @@ public class RecommendationEngine {
 
     private final RecommendationProvider recommendationProvider;
 
-    public Page<RecommendationDTO> getRecommendations(Long userId, Pageable pageable) {
-        return recommendationProvider.getRecommendations(userId, pageable);
+    public PageResponse<RecommendationDTO> getRecommendations(
+            Long userId,
+            int page,
+            int size,
+            String search,
+            String sortBy,
+            String sortDir
+    ) {
+        return recommendationProvider.getRecommendations(userId, page, size, search, sortBy, sortDir);
     }
 }

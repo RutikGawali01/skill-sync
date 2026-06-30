@@ -18,6 +18,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.rutik.skill_sync_backend.common.dto.PageResponse;
+import org.springframework.data.domain.Page;
+import java.util.Set;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -250,15 +253,40 @@ public class SkillServiceImpl implements SkillService {
     }
 
     @Override
-    public List<ExploreSkillResponseDto> getExploreSkills() {
+    public PageResponse<ExploreSkillResponseDto> getExploreSkills(
+            int page,
+            int size,
+            String search,
+            String sortBy,
+            String sortDir
+    ) {
+        log.info("➡️ getExploreSkills called: page={}, size={}, search={}, sortBy={}, sortDir={}", page, size, search, sortBy, sortDir);
 
-        List<UserSkill> offeredSkills =
-                userSkillRepository.findByType(SkillType.OFFER);
+        String mappedSortBy = sortBy;
+        if ("skillName".equals(sortBy)) {
+            mappedSortBy = "skill.name";
+        } else if ("fullName".equals(sortBy)) {
+            mappedSortBy = "user.name";
+        } else if (sortBy == null || sortBy.isBlank()) {
+            mappedSortBy = "createdAt";
+        }
 
-        return offeredSkills.stream()
-                .filter(userSkill -> Boolean.TRUE.equals(userSkill.getIsVisible()))
-                .map(this::mapToExploreDto)
-                .toList();
+        Set<String> allowedFields = Set.of("id", "createdAt", "level", "skill.name", "user.name");
+
+        org.springframework.data.domain.Pageable pageable =
+                com.rutik.skill_sync_backend.common.util.PaginationUtils.createPageable(
+                        page, size, mappedSortBy, sortDir, allowedFields, "createdAt"
+                );
+
+        Page<UserSkill> userSkillsPage;
+        if (search == null || search.isBlank()) {
+            userSkillsPage = userSkillRepository.findByTypeAndIsVisibleTrue(SkillType.OFFER, pageable);
+        } else {
+            userSkillsPage = userSkillRepository.findByTypeAndIsVisibleTrueAndSearch(SkillType.OFFER, search.trim(), pageable);
+        }
+
+        Page<ExploreSkillResponseDto> dtoPage = userSkillsPage.map(this::mapToExploreDto);
+        return PageResponse.from(dtoPage);
     }
 
     private ExploreSkillResponseDto mapToExploreDto(

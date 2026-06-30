@@ -1,9 +1,15 @@
 package com.rutik.skill_sync_backend.match.engine;
 
 import com.rutik.skill_sync_backend.match.dto.RecommendationDTO;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.rutik.skill_sync_backend.common.dto.PageResponse;
 
 public interface RecommendationProvider {
-    Page<RecommendationDTO> getRecommendations(Long userId, Pageable pageable);
+    PageResponse<RecommendationDTO> getRecommendations(
+            Long userId,
+            int page,
+            int size,
+            String search,
+            String sortBy,
+            String sortDir
+    );
 }

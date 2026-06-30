@@ -4,6 +4,8 @@ package com.rutik.skill_sync_backend.skill.service;
 import com.rutik.skill_sync_backend.skill.dto.*;
 import com.rutik.skill_sync_backend.skill.enums.SkillType;
 
+import com.rutik.skill_sync_backend.common.dto.PageResponse;
+
 import java.util.List;
 
 public interface SkillService {
@@ -23,7 +25,13 @@ public interface SkillService {
     // ✅ Skill Catalog
     List<SkillResponseDTO> getAllSkills(String keyword);
 
-    List<ExploreSkillResponseDto> getExploreSkills();
+    PageResponse<ExploreSkillResponseDto> getExploreSkills(
+            int page,
+            int size,
+            String search,
+            String sortBy,
+            String sortDir
+    );
 
     List<VerifiedBadgeResponseDto> getVerifiedBadges(
             Long userId

@@ -73,8 +73,10 @@ export const removeSkill = async (skillId, type) => {
  *   [{ userSkillId, skillName, skillLevel, category, userId,
  *      fullName, profilePicture, rating, completedSessions, offersSkill }, ...]
  */
-export const getExploreSkills = async () => {
-  const response = await api.get('/skills/explore');
+export const getExploreSkills = async ({ page = 0, size = 10, search = '', sortBy = 'createdAt', sortDir = 'desc' } = {}) => {
+  const response = await api.get('/skills/explore', {
+    params: { page, size, search, sortBy, sortDir },
+  });
   return response.data.data;
 };
 

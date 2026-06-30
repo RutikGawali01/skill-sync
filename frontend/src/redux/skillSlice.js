@@ -105,9 +105,9 @@ export const removeUserSkill = createAsyncThunk(
 /** Fetch the public explore feed — all offered skills across the platform. */
 export const fetchExploreSkills = createAsyncThunk(
   'skills/fetchExploreSkills',
-  async (_, { rejectWithValue }) => {
+  async (params, { rejectWithValue }) => {
     try {
-      return await getExploreSkills();
+      return await getExploreSkills(params);
     } catch (err) {
       return rejectWithValue(
         err?.response?.data?.message || 'Failed to load explore skills'
@@ -124,6 +124,12 @@ const skillSlice = createSlice({
     availableSkills: [],       // master catalog
     userSkills:      [],       // current user's skills
     exploreSkills:   [],       // public explore feed
+    explorePagination: {
+      page: 0,
+      size: 10,
+      totalPages: 0,
+      totalElements: 0,
+    },
     loading:         false,    // user skills fetch
     catalogLoading:  false,    // catalog fetch
     exploreLoading:  false,    // explore feed fetch
@@ -210,7 +216,14 @@ const skillSlice = createSlice({
       })
       .addCase(fetchExploreSkills.fulfilled, (state, action) => {
         state.exploreLoading = false;
-        state.exploreSkills  = action.payload ?? [];
+        const page = action.payload;
+        state.exploreSkills  = Array.isArray(page?.content) ? page.content : [];
+        state.explorePagination = {
+          page: page?.page ?? 0,
+          size: page?.size ?? 10,
+          totalPages: page?.totalPages ?? 0,
+          totalElements: page?.totalElements ?? 0,
+        };
       })
       .addCase(fetchExploreSkills.rejected, (state, action) => {
         state.exploreLoading = false;
@@ -226,6 +239,7 @@ export default skillSlice.reducer;
 export const selectAvailableSkills  = (state) => state.skills.availableSkills;
 export const selectUserSkills       = (state) => state.skills.userSkills;
 export const selectExploreSkills    = (state) => state.skills.exploreSkills;
+export const selectExplorePagination = (state) => state.skills.explorePagination;
 export const selectSkillsLoading    = (state) => state.skills.loading;
 export const selectCatalogLoading   = (state) => state.skills.catalogLoading;
 export const selectExploreLoading   = (state) => state.skills.exploreLoading;
