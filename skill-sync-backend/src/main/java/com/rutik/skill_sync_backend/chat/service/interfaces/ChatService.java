@@ -3,7 +3,7 @@ package com.rutik.skill_sync_backend.chat.service.interfaces;
 import com.rutik.skill_sync_backend.chat.dto.request.ReadReceiptRequest;
 import com.rutik.skill_sync_backend.chat.dto.request.SendMessageRequest;
 import com.rutik.skill_sync_backend.chat.dto.response.MessageResponse;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Pageable;
 
 /**
@@ -26,9 +26,9 @@ public interface ChatService {
      * @param currentUserId the ID of the requesting user
      * @param conversationId the ID of the conversation
      * @param pageable pagination options
-     * @return page of MessageResponse
+     * @return slice of MessageResponse
      */
-    Page<MessageResponse> getMessages(Long currentUserId, Long conversationId, Pageable pageable);
+    Slice<MessageResponse> getMessages(Long currentUserId, Long conversationId, Pageable pageable);
 
     /**
      * Marks a specific message and all prior messages in the conversation as read.

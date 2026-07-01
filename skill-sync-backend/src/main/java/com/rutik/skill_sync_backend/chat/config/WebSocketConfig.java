@@ -18,7 +18,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
  * Configures communication endpoints, client-side destinations, security filters,
  * and connection parameters (heartbeats/scheduling).
  */
-@Configuration
+@Configuration("chatWebSocketConfig")
 @EnableWebSocketMessageBroker
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {

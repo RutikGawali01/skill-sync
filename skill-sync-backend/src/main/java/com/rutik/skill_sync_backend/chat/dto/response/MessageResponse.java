@@ -17,6 +17,8 @@ import java.time.LocalDateTime;
 public class MessageResponse {
     private Long id;
     private Long conversationId;
+    private Long sessionId;
+    private String clientMessageId;
     private Long senderId;
     private String senderName;
     private String content;

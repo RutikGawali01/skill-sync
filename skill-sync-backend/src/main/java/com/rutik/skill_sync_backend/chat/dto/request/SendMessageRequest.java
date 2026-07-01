@@ -18,6 +18,11 @@ public class SendMessageRequest {
     @NotNull(message = "Conversation ID is required")
     private Long conversationId;
 
+    @NotNull(message = "Session ID is required")
+    private Long sessionId;
+
+    private String clientMessageId;
+
     @NotBlank(message = "Message content cannot be blank")
     private String content;
 

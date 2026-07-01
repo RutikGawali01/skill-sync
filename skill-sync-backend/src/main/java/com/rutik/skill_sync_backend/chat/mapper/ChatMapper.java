@@ -49,6 +49,15 @@ public class ChatMapper {
             response.setSenderId(message.getSender().getId());
             response.setSenderName(message.getSender().getName());
         }
+        if (message.getSession() != null) {
+            response.setSessionId(message.getSession().getId());
+        }
+        if (message.getClientMessageId() != null) {
+            response.setClientMessageId(message.getClientMessageId());
+        }
+        if (message.isDeleted()) {
+            response.setContent("This message was deleted.");
+        }
         return response;
     }
 }

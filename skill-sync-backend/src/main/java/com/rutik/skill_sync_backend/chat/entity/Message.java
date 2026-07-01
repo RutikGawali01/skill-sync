@@ -3,6 +3,7 @@ package com.rutik.skill_sync_backend.chat.entity;
 import com.rutik.skill_sync_backend.chat.enums.MessageStatus;
 import com.rutik.skill_sync_backend.chat.enums.MessageType;
 import com.rutik.skill_sync_backend.user.entity.User;
+import com.rutik.skill_sync_backend.session.entity.Session;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -37,6 +38,13 @@ public class Message {
     @JoinColumn(name = "sender_id", nullable = false)
     private User sender;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "session_id", nullable = true)
+    private Session session;
+
+    @Column(name = "client_message_id", unique = true)
+    private String clientMessageId;
+
     @Column(nullable = false, length = 4000)
     private String content;
 
@@ -56,6 +64,14 @@ public class Message {
     @Column(nullable = false)
     @Builder.Default
     private boolean deleted = false;
+
+    private LocalDateTime deletedAt;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean edited = false;
+
+    private LocalDateTime editedAt;
 
     @PrePersist
     public void onCreate() {

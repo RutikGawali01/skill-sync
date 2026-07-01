@@ -98,4 +98,10 @@ public interface ConversationParticipantRepository extends JpaRepository<Convers
      * @return true if participant exists and is not soft-deleted
      */
     boolean existsByConversationIdAndUserIdAndDeletedFalse(Long conversationId, Long userId);
+
+    /**
+     * Find all conversation IDs for a user where the participation is active.
+     */
+    @Query("SELECT cp.conversation.id FROM ConversationParticipant cp WHERE cp.user.id = :userId AND cp.deleted = false")
+    List<Long> findConversationIdsByUserId(@Param("userId") Long userId);
 }

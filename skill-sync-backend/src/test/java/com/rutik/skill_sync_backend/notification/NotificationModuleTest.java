@@ -115,7 +115,7 @@ class NotificationModuleTest {
                 eq(NotificationEntityType.REVIEW)))
                 .thenReturn(mockNotification);
                 
-        when(notificationRepository.save(any(Notification.class))).thenReturn(mockNotification);
+        when(notificationRepository.saveAndFlush(any(Notification.class))).thenReturn(mockNotification);
         when(notificationMapper.toResponseDto(mockNotification)).thenReturn(mockResponseDto);
         when(notificationRepository.countUnreadByRecipientId(1L)).thenReturn(1L);
 
@@ -128,7 +128,7 @@ class NotificationModuleTest {
         assertEquals("You received a new review", result.getTitle());
         
         // Verify interactions
-        verify(notificationRepository).save(mockNotification);
+        verify(notificationRepository).saveAndFlush(mockNotification);
         verify(pushService).pushNotification(eq(1L), eq(mockResponseDto));
         verify(pushService).pushUnreadCount(eq(1L), eq(1L));
     }

@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -74,12 +75,12 @@ public class ChatController {
      * @return paginated list of MessageResponse
      */
     @GetMapping("/conversations/{id}/messages")
-    public ResponseEntity<ApiResponse<Page<MessageResponse>>> getMessages(
+    public ResponseEntity<ApiResponse<Slice<MessageResponse>>> getMessages(
             @AuthenticationPrincipal(expression = "id") Long userId,
             @PathVariable("id") Long id,
             @PageableDefault(size = 20) Pageable pageable) {
         log.info("📥 REST Request: Get messages for conversation {} and user {}", id, userId);
-        Page<MessageResponse> messages = chatService.getMessages(userId, id, pageable);
+        Slice<MessageResponse> messages = chatService.getMessages(userId, id, pageable);
         return ResponseEntity.ok(ApiResponse.success("Messages retrieved successfully", messages));
     }
 

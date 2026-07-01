@@ -46,6 +46,12 @@ public class Conversation {
     @Builder.Default
     private boolean deleted = false;
 
+    private LocalDateTime deletedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "latest_message_id")
+    private Message latestMessage;
+
     @Version
     private Long version;
 
