@@ -1,9 +1,4 @@
-/**
- * EmptyAvailabilityState.jsx
- * ──────────────────────────
- * Shown when a day has zero availability slots.
- * Lightweight, animated empty state with a subtle CTA.
- */
+
 
 import { motion } from 'framer-motion';
 import { CalendarOff } from 'lucide-react';

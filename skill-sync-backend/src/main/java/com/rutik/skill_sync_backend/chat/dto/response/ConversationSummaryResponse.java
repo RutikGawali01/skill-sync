@@ -27,4 +27,6 @@ public class ConversationSummaryResponse {
     private Long otherParticipantId;
     private String otherParticipantName;
     private String otherParticipantProfilePicUrl;
+    private String skillExchange;
+    private String sessionStatus;
 }

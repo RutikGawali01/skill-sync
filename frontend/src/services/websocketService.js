@@ -10,12 +10,6 @@
  * • The STOMP library's built-in reconnect is DISABLED (reconnectDelay = 0).
  *   All reconnect decisions are owned by the caller (useNotificationSocket).
  * • onStompError NEVER triggers a token refresh.
- *   Rationale: authentication happens at the HTTP WebSocket handshake level
- *   (JwtHandshakeInterceptor).  If the handshake succeeds, the STOMP session
- *   is already authenticated.  Any subsequent STOMP error (e.g.
- *   "clientInboundChannel") is a broker/routing/serialization problem, NOT
- *   an auth problem.  Triggering a token refresh on every STOMP error caused
- *   an infinite refresh→reconnect→error→refresh loop.
  * • Token refresh on 401 is handled exclusively by the Axios interceptor in
  *   api.js for REST calls.  WebSocket re-auth is handled by disconnecting and
  *   letting the caller decide whether to reconnect with a fresh token.
@@ -35,8 +29,11 @@ const HEARTBEAT_MS   = 25_000;
 /** The single active STOMP client, or null when disconnected. */
 let client        = null;
 
-/** Active STOMP subscription handles keyed by logical name. */
+/** Active STOMP subscription handles keyed by logical name / destination. */
 let subscriptions = {};
+
+/** Registry for dynamic subscriptions that must survive reconnection. */
+let dynamicSubscriptions = {};
 
 // ── Internal helpers ──────────────────────────────────────────────────────────
 
@@ -71,30 +68,15 @@ const teardown = () => {
 
 /**
  * Opens (or replaces) the WebSocket connection.
- *
- * @param {object} callbacks
- *   onConnect()               — called when STOMP session is ready
- *   onDisconnect()            — called when the session ends (for any reason)
- *   onNotification(payload)   — called with each parsed notification object
- *   onUnreadCount(n)          — called with the latest unread badge count
- *   onError(errorType, frame) — called on STOMP error; errorType is 'stomp'
  */
 export const connectWebSocket = (callbacks = {}) => {
   const { onNotification, onUnreadCount, onConnect, onDisconnect, onError } = callbacks;
 
-  // Tear down any existing client before creating a new one.
-  // This prevents duplicate clients and duplicate subscriptions.
   teardown();
 
   client = new Client({
     webSocketFactory: buildSockJS,
-
-    // Disable built-in reconnect.
-    // The STOMP library's auto-reconnect re-enters connectWebSocket indirectly
-    // and can cause duplicate clients when combined with our own reconnect logic.
-    // The caller (useNotificationSocket) owns all reconnect decisions.
     reconnectDelay: 0,
-
     heartbeatIncoming: HEARTBEAT_MS,
     heartbeatOutgoing: HEARTBEAT_MS,
 
@@ -126,6 +108,19 @@ export const connectWebSocket = (callbacks = {}) => {
           }
         }
       );
+
+      // Re-establish dynamic subscriptions upon reconnect
+      Object.entries(dynamicSubscriptions).forEach(([dest, cb]) => {
+        console.info(`[WebSocket] Resubscribing to dynamic channel: ${dest}`);
+        subscriptions[dest] = client.subscribe(dest, (message) => {
+          try {
+            const payload = JSON.parse(message.body);
+            cb(payload);
+          } catch (err) {
+            cb(message.body);
+          }
+        });
+      });
     },
 
     onDisconnect: () => {
@@ -134,30 +129,9 @@ export const connectWebSocket = (callbacks = {}) => {
       onDisconnect?.();
     },
 
-    /**
-     * STOMP protocol-level error (ERROR frame from broker).
-     *
-     * ⚠ DO NOT perform token refresh here.
-     *
-     * A STOMP ERROR frame means the broker rejected a frame we sent AFTER the
-     * HTTP handshake already succeeded.  Authentication was already validated at
-     * handshake time by JwtHandshakeInterceptor.  Common causes:
-     *
-     *   • "clientInboundChannel" — Spring's message broker failed to route the
-     *     frame (transaction timing, listener exception, serialization error).
-     *     This is a SERVER-SIDE BUG, not a client auth problem.
-     *   • Subscription to an unauthorized destination — security policy mismatch.
-     *
-     * Refreshing the token and reconnecting for any of these causes an infinite
-     * loop because the same error will fire again after reconnect.
-     *
-     * Strategy: log it, notify the caller, and let the caller decide what to do.
-     */
     onStompError: (frame) => {
       const msg = frame.headers?.message || '(no message)';
       console.error('[WebSocket] STOMP ERROR frame received:', msg);
-      console.debug('[WebSocket] Full STOMP error frame:', frame);
-
       teardown();
       onError?.('stomp', frame);
       onDisconnect?.();
@@ -175,7 +149,6 @@ export const connectWebSocket = (callbacks = {}) => {
 
 /**
  * Gracefully closes the current WebSocket connection.
- * Safe to call when already disconnected.
  */
 export const disconnectWebSocket = () => {
   teardown();
@@ -186,3 +159,54 @@ export const disconnectWebSocket = () => {
  */
 export const isWebSocketConnected = () =>
   Boolean(client?.connected);
+
+/**
+ * Subscribes dynamically to a STOMP destination.
+ * If already connected, registers immediately.
+ * Survived by reconnection.
+ */
+export const subscribeDynamic = (destination, callback) => {
+  dynamicSubscriptions[destination] = callback;
+
+  if (client && client.connected) {
+    if (subscriptions[destination]) {
+      try { subscriptions[destination].unsubscribe(); } catch {}
+    }
+    const sub = client.subscribe(destination, (message) => {
+      try {
+        const payload = JSON.parse(message.body);
+        callback(payload);
+      } catch (err) {
+        callback(message.body);
+      }
+    });
+    subscriptions[destination] = sub;
+    return sub;
+  }
+  return null;
+};
+
+/**
+ * Unsubscribes dynamically from a destination and removes it from the reconnect registry.
+ */
+export const unsubscribeDynamic = (destination) => {
+  delete dynamicSubscriptions[destination];
+  if (subscriptions[destination]) {
+    try { subscriptions[destination].unsubscribe(); } catch {}
+    delete subscriptions[destination];
+  }
+};
+
+/**
+ * Publishes a STOMP frame to a destination.
+ */
+export const publish = (destination, body) => {
+  if (client && client.connected) {
+    client.publish({
+      destination,
+      body: JSON.stringify(body)
+    });
+  } else {
+    console.warn('[WebSocket] Cannot publish: client not connected to destination', destination);
+  }
+};

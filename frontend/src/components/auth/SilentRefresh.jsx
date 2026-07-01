@@ -6,18 +6,7 @@ import { setAuth } from '../../redux/authSlice';
 import { refreshAccessToken } from '../../services/authService';
 import { tokenService, decodeToken } from '../../utils/tokenUtils';
 
-/**
- * SilentRefresh
- *
- * Runs once on app load (before any page renders).
- *
- * Strategy:
- *  1. Call POST /auth/refresh — backend reads HttpOnly refreshToken cookie
- *  2. If valid cookie  → get new accessToken → store → dispatch to Redux → render app
- *  3. If no cookie / expired → clear stale token → render app as guest
- *
- * This restores the session on hard refresh without requiring login again.
- */
+
 const SilentRefresh = ({ children }) => {
   const dispatch = useDispatch();
   const [ready, setReady] = useState(false);

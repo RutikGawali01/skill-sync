@@ -1,12 +1,3 @@
-/**
- * AddAvailabilityModal.jsx
- * ────────────────────────
- * Modal for creating a new weekly availability slot.
- *
- * Fields: Day (Select), Start Time, End Time
- * Validation: all required, start < end
- * Uses Mantine Modal + Select + native time inputs for maximum compatibility.
- */
 
 import { useState, useEffect } from 'react';
 import { Modal, Select, Button } from '@mantine/core';
@@ -14,29 +5,26 @@ import { Clock, CalendarPlus } from 'lucide-react';
 
 // Day options for the dropdown
 const DAY_OPTIONS = [
-  { value: 'MONDAY',    label: 'Monday' },
-  { value: 'TUESDAY',   label: 'Tuesday' },
+  { value: 'MONDAY', label: 'Monday' },
+  { value: 'TUESDAY', label: 'Tuesday' },
   { value: 'WEDNESDAY', label: 'Wednesday' },
-  { value: 'THURSDAY',  label: 'Thursday' },
-  { value: 'FRIDAY',    label: 'Friday' },
-  { value: 'SATURDAY',  label: 'Saturday' },
-  { value: 'SUNDAY',    label: 'Sunday' },
+  { value: 'THURSDAY', label: 'Thursday' },
+  { value: 'FRIDAY', label: 'Friday' },
+  { value: 'SATURDAY', label: 'Saturday' },
+  { value: 'SUNDAY', label: 'Sunday' },
 ];
 
-/**
- * Validate that startTime is before endTime.
- * Both are in "HH:mm" 24h format.
- */
+
 const isValidTimeRange = (start, end) => {
   if (!start || !end) return false;
   return start < end;
 };
 
 const AddAvailabilityModal = ({ opened, onClose, onSubmit, preselectedDay, creating }) => {
-  const [day, setDay]             = useState(preselectedDay || '');
+  const [day, setDay] = useState(preselectedDay || '');
   const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime]     = useState('');
-  const [errors, setErrors]       = useState({});
+  const [endTime, setEndTime] = useState('');
+  const [errors, setErrors] = useState({});
 
   // Reset form when modal opens or preselected day changes
   useEffect(() => {
@@ -50,9 +38,9 @@ const AddAvailabilityModal = ({ opened, onClose, onSubmit, preselectedDay, creat
 
   const validate = () => {
     const errs = {};
-    if (!day)       errs.day       = 'Please select a day';
+    if (!day) errs.day = 'Please select a day';
     if (!startTime) errs.startTime = 'Start time is required';
-    if (!endTime)   errs.endTime   = 'End time is required';
+    if (!endTime) errs.endTime = 'End time is required';
     if (startTime && endTime && !isValidTimeRange(startTime, endTime)) {
       errs.endTime = 'End time must be after start time';
     }
@@ -88,8 +76,8 @@ const AddAvailabilityModal = ({ opened, onClose, onSubmit, preselectedDay, creat
       }}
       classNames={{
         content: 'dark:!bg-gray-900',
-        header:  'dark:!bg-gray-900',
-        body:    'dark:!bg-gray-900',
+        header: 'dark:!bg-gray-900',
+        body: 'dark:!bg-gray-900',
       }}
     >
       <div className="flex flex-col gap-5 pt-2">

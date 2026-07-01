@@ -14,6 +14,7 @@ import SessionDetailsPage from '../pages/session/SessionDetailsPage';
 import UserReviewsPage from '../pages/review/UserReviewsPage';
 import SessionReviewPage from '../pages/review/SessionReviewPage';
 import NotificationsPage from '../pages/notification/NotificationsPage';
+import ChatPage from '../pages/chat/ChatPage';
 
 // Placeholder pages — replace with real components as they are built
 const Placeholder = ({ label }) => (
@@ -43,7 +44,7 @@ const AppRoutes = () => (
         <Route element={<MainLayout />}>
           <Route path="/skills"        element={<SkillsPage />} />
           <Route path="/matches"       element={<Placeholder label="Matches Page" />} />
-          <Route path="/chat"          element={<Placeholder label="Chat" />} />
+          <Route path="/chat"          element={<ChatPage />} />
           <Route path="/profile"       element={<ProfilePage />} />
           <Route path="/availability"  element={<AvailabilityPage />} />
           <Route path="/sessions"       element={<SessionDashboardPage />} />

@@ -1,16 +1,8 @@
-/**
- * AvailabilitySlotCard.jsx
- * ────────────────────────
- * Individual time-slot chip with edit/delete actions.
- * Shows a loading spinner on the specific slot being updated or deleted.
- */
 
 import { motion } from 'framer-motion';
 import { Clock, Pencil, Trash2, Loader2 } from 'lucide-react';
 
-/**
- * Format "19:00" → "7:00 PM"
- */
+
 const formatTime = (time24) => {
   if (!time24) return '';
   const [h, m] = time24.split(':').map(Number);

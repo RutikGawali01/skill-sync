@@ -1,22 +1,17 @@
-/**
- * EditAvailabilityModal.jsx
- * ─────────────────────────
- * Modal for editing an existing availability slot.
- * Pre-fills existing values. Same validation as AddAvailabilityModal.
- */
+
 
 import { useState, useEffect } from 'react';
 import { Modal, Select, Button } from '@mantine/core';
 import { Clock, Pencil } from 'lucide-react';
 
 const DAY_OPTIONS = [
-  { value: 'MONDAY',    label: 'Monday' },
-  { value: 'TUESDAY',   label: 'Tuesday' },
+  { value: 'MONDAY', label: 'Monday' },
+  { value: 'TUESDAY', label: 'Tuesday' },
   { value: 'WEDNESDAY', label: 'Wednesday' },
-  { value: 'THURSDAY',  label: 'Thursday' },
-  { value: 'FRIDAY',    label: 'Friday' },
-  { value: 'SATURDAY',  label: 'Saturday' },
-  { value: 'SUNDAY',    label: 'Sunday' },
+  { value: 'THURSDAY', label: 'Thursday' },
+  { value: 'FRIDAY', label: 'Friday' },
+  { value: 'SATURDAY', label: 'Saturday' },
+  { value: 'SUNDAY', label: 'Sunday' },
 ];
 
 const isValidTimeRange = (start, end) => {
@@ -25,10 +20,10 @@ const isValidTimeRange = (start, end) => {
 };
 
 const EditAvailabilityModal = ({ opened, onClose, onSubmit, slot, updating }) => {
-  const [day, setDay]             = useState('');
+  const [day, setDay] = useState('');
   const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime]     = useState('');
-  const [errors, setErrors]       = useState({});
+  const [endTime, setEndTime] = useState('');
+  const [errors, setErrors] = useState({});
 
   // Pre-fill form when slot changes or modal opens
   useEffect(() => {
@@ -42,9 +37,9 @@ const EditAvailabilityModal = ({ opened, onClose, onSubmit, slot, updating }) =>
 
   const validate = () => {
     const errs = {};
-    if (!day)       errs.day       = 'Please select a day';
+    if (!day) errs.day = 'Please select a day';
     if (!startTime) errs.startTime = 'Start time is required';
-    if (!endTime)   errs.endTime   = 'End time is required';
+    if (!endTime) errs.endTime = 'End time is required';
     if (startTime && endTime && !isValidTimeRange(startTime, endTime)) {
       errs.endTime = 'End time must be after start time';
     }
@@ -78,8 +73,8 @@ const EditAvailabilityModal = ({ opened, onClose, onSubmit, slot, updating }) =>
       overlayProps={{ backgroundOpacity: 0.4, blur: 4 }}
       classNames={{
         content: 'dark:!bg-gray-900',
-        header:  'dark:!bg-gray-900',
-        body:    'dark:!bg-gray-900',
+        header: 'dark:!bg-gray-900',
+        body: 'dark:!bg-gray-900',
       }}
     >
       <div className="flex flex-col gap-5 pt-2">

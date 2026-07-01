@@ -249,13 +249,14 @@ public class ConversationServiceImpl implements ConversationService {
         userRepository.findById(currentUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        Page<ConversationParticipant> participations = conversationParticipantRepository
-                .findByUserIdAndArchivedAndDeletedFalse(currentUserId, false, pageable);
+        // Fetch unpaginated/all participants to filter correctly in memory
+        List<ConversationParticipant> participations = conversationParticipantRepository
+                .findByUserIdAndArchivedAndDeletedFalse(currentUserId, false, Pageable.unpaged()).getContent();
 
-        return participations.map(cp -> {
+        List<ConversationSummaryResponse> summaryList = new ArrayList<>();
+        for (ConversationParticipant cp : participations) {
             Conversation conv = cp.getConversation();
             
-            // Get all participants of this conversation to extract the other user
             List<ConversationParticipant> allParts = conversationParticipantRepository
                     .findByConversationIdAndDeletedFalse(conv.getId());
 
@@ -264,26 +265,27 @@ public class ConversationServiceImpl implements ConversationService {
                     .findFirst()
                     .orElse(null);
 
+            if (otherCp == null) continue;
+
+            Long otherUserId = otherCp.getUser().getId();
+
+            // Verify if at least one session exists between the users with status ACCEPTED or COMPLETED
+            List<Session> sessionsBetween = sessionRepository.findSessionsBetweenUsers(currentUserId, otherUserId);
+            boolean hasActiveSession = sessionsBetween.stream()
+                    .anyMatch(s -> s.getStatus() == SessionStatus.ACCEPTED || s.getStatus() == SessionStatus.COMPLETED);
+
+            if (!hasActiveSession) {
+                continue; // Skip this conversation since there's no accepted/completed session
+            }
+
             String lastMsgContent = null;
             LocalDateTime lastMsgSentAt = null;
-            
-            // Retrieve latest message from cache pointer
             if (conv.getLatestMessage() != null) {
                 lastMsgContent = conv.getLatestMessage().getContent();
                 lastMsgSentAt = conv.getLatestMessage().getCreatedAt();
             }
 
-            Long otherId = null;
-            String otherName = null;
-            String otherProfilePic = null;
-
-            if (otherCp != null) {
-                otherId = otherCp.getUser().getId();
-                otherName = otherCp.getUser().getName();
-                otherProfilePic = otherCp.getUser().getProfilePicUrl();
-            }
-
-            return ConversationSummaryResponse.builder()
+            summaryList.add(ConversationSummaryResponse.builder()
                     .conversationId(conv.getId())
                     .type(conv.getType())
                     .status(conv.getStatus())
@@ -292,11 +294,21 @@ public class ConversationServiceImpl implements ConversationService {
                     .archived(cp.isArchived())
                     .lastMessageContent(lastMsgContent)
                     .lastMessageSentAt(lastMsgSentAt)
-                    .otherParticipantId(otherId)
-                    .otherParticipantName(otherName)
-                    .otherParticipantProfilePicUrl(otherProfilePic)
-                    .build();
-        });
+                    .otherParticipantId(otherUserId)
+                    .otherParticipantName(otherCp.getUser().getName())
+                    .otherParticipantProfilePicUrl(otherCp.getUser().getProfilePicUrl())
+                    .build());
+        }
+
+        // Apply pagination offsets in memory
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), summaryList.size());
+        List<ConversationSummaryResponse> subList = List.of();
+        if (start < summaryList.size()) {
+            subList = summaryList.subList(start, end);
+        }
+
+        return new org.springframework.data.domain.PageImpl<>(subList, pageable, summaryList.size());
     }
 
     @Override

@@ -9,6 +9,9 @@ import reviewReducer from './review/reviewSlice';
 import trustReducer from './review/trustSlice';
 import notificationReducer from './notification/notificationSlice';
 import matchReducer from './matchSlice';
+import conversationReducer from './conversationSlice';
+import chatReducer from './chatSlice';
+import presenceReducer from './presenceSlice';
 
 const appReducer = combineReducers({
   auth:         authReducer,
@@ -21,6 +24,9 @@ const appReducer = combineReducers({
   trust:         trustReducer,
   notifications: notificationReducer,
   matches:       matchReducer,
+  conversations: conversationReducer,
+  chat:         chatReducer,
+  presence:     presenceReducer,
 });
 
 const rootReducer = (state, action) => {

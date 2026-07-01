@@ -1,9 +1,3 @@
-/**
- * DayAvailabilityRow.jsx
- * ──────────────────────
- * A single day row in the weekly availability grid.
- * Shows the day label, all time-slot cards, and an "Add slot" button.
- */
 
 import { AnimatePresence, motion } from 'framer-motion';
 import { Plus } from 'lucide-react';
@@ -12,35 +6,35 @@ import EmptyAvailabilityState from './EmptyAvailabilityState';
 
 // Short labels for compact mobile display
 const SHORT_DAY = {
-  MONDAY:    'Mon',
-  TUESDAY:   'Tue',
+  MONDAY: 'Mon',
+  TUESDAY: 'Tue',
   WEDNESDAY: 'Wed',
-  THURSDAY:  'Thu',
-  FRIDAY:    'Fri',
-  SATURDAY:  'Sat',
-  SUNDAY:    'Sun',
+  THURSDAY: 'Thu',
+  FRIDAY: 'Fri',
+  SATURDAY: 'Sat',
+  SUNDAY: 'Sun',
 };
 
 // Friendly display labels
 const DAY_LABEL = {
-  MONDAY:    'Monday',
-  TUESDAY:   'Tuesday',
+  MONDAY: 'Monday',
+  TUESDAY: 'Tuesday',
   WEDNESDAY: 'Wednesday',
-  THURSDAY:  'Thursday',
-  FRIDAY:    'Friday',
-  SATURDAY:  'Saturday',
-  SUNDAY:    'Sunday',
+  THURSDAY: 'Thursday',
+  FRIDAY: 'Friday',
+  SATURDAY: 'Saturday',
+  SUNDAY: 'Sunday',
 };
 
 // Color accent per day for visual variety
 const DAY_ACCENT = {
-  MONDAY:    'from-violet-500 to-indigo-500',
-  TUESDAY:   'from-blue-500 to-cyan-500',
+  MONDAY: 'from-violet-500 to-indigo-500',
+  TUESDAY: 'from-blue-500 to-cyan-500',
   WEDNESDAY: 'from-emerald-500 to-teal-500',
-  THURSDAY:  'from-amber-500 to-orange-500',
-  FRIDAY:    'from-pink-500 to-rose-500',
-  SATURDAY:  'from-purple-500 to-fuchsia-500',
-  SUNDAY:    'from-red-500 to-rose-500',
+  THURSDAY: 'from-amber-500 to-orange-500',
+  FRIDAY: 'from-pink-500 to-rose-500',
+  SATURDAY: 'from-purple-500 to-fuchsia-500',
+  SUNDAY: 'from-red-500 to-rose-500',
 };
 
 const DayAvailabilityRow = ({
@@ -52,9 +46,9 @@ const DayAvailabilityRow = ({
   updatingId,
   deletingId,
 }) => {
-  const label    = DAY_LABEL[day] ?? day;
+  const label = DAY_LABEL[day] ?? day;
   const shortLbl = SHORT_DAY[day] ?? day;
-  const accent   = DAY_ACCENT[day] ?? 'from-gray-500 to-gray-600';
+  const accent = DAY_ACCENT[day] ?? 'from-gray-500 to-gray-600';
 
   return (
     <motion.div

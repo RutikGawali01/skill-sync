@@ -1,10 +1,4 @@
-/**
- * AvailabilityGrid.jsx
- * ────────────────────
- * The main weekly grid container. Renders 7 DayAvailabilityRows,
- * grouping slots by day of week. Also renders loading skeletons
- * and the full-page error state.
- */
+
 
 import { motion } from 'framer-motion';
 import { AlertCircle, RefreshCw } from 'lucide-react';
@@ -21,7 +15,6 @@ const DAYS_OF_WEEK = [
   'SUNDAY',
 ];
 
-// ── Skeleton row for loading state ────────────────────────────────────────────
 const SkeletonRow = () => (
   <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 py-5 px-1 border-b border-gray-100 dark:border-gray-800/60 animate-pulse">
     <div className="flex items-center gap-3 sm:w-36">
@@ -38,7 +31,6 @@ const SkeletonRow = () => (
   </div>
 );
 
-// ── Error State ───────────────────────────────────────────────────────────────
 const ErrorState = ({ message, onRetry }) => (
   <motion.div
     initial={{ opacity: 0, y: 10 }}
@@ -68,7 +60,6 @@ const ErrorState = ({ message, onRetry }) => (
   </motion.div>
 );
 
-// ── Main Grid ─────────────────────────────────────────────────────────────────
 const AvailabilityGrid = ({
   slots,
   loading,
