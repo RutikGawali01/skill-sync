@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { useSelector } from 'react-redux';
-import { ActionIcon, Avatar, Box, Group, Text, Menu, useMantineTheme } from '@mantine/core';
+import { ActionIcon, Avatar, Box, Group, Text, Menu, Badge, useMantineTheme } from '@mantine/core';
 import { ArrowLeft, MoreVertical, User, Calendar } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 
-const ChatHeader = ({
+const ChatHeader = memo(({
   conversation,
   onBack,
   currentUserId,
@@ -16,23 +16,38 @@ const ChatHeader = ({
   
   const { participants = [], sessions = [] } = conversation;
   
-  const otherParticipant = participants.find((p) => p.id !== currentUserId) || {};
+  const otherParticipant = (participants.length > 0 && participants.find((p) => p.id !== currentUserId)) || {
+    id: conversation.otherParticipantId,
+    name: conversation.otherParticipantName,
+    profilePicUrl: conversation.otherParticipantProfilePicUrl,
+  };
   const otherParticipantId = otherParticipant.id;
   
   const onlineUsers = useSelector((state) => state.presence.onlineUsers);
   const isOnline = onlineUsers[otherParticipantId] || otherParticipant.online || false;
   
   const latestSession = sessions.length > 0 ? sessions[sessions.length - 1] : null;
-  const isTeacher = latestSession ? latestSession.teacherName === otherParticipant.name : false;
-  
-  let skillExchangeLabel = 'Skill Exchange';
-  if (latestSession) {
-    if (isTeacher) {
-      skillExchangeLabel = `Teaching you: ${latestSession.skillOffered}`;
-    } else {
-      skillExchangeLabel = `Learning from you: ${latestSession.skillRequested}`;
+
+  const skillExchangeText = latestSession 
+    ? `${latestSession.skillOffered} ↔ ${latestSession.skillRequested}` 
+    : 'Skill Exchange';
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'COMPLETED':
+        return <Badge color="green" variant="light" size="xs">Completed Session</Badge>;
+      case 'ACCEPTED':
+        return <Badge color="blue" variant="light" size="xs">Scheduled Session</Badge>;
+      case 'PENDING':
+        return <Badge color="yellow" variant="light" size="xs">Pending Session</Badge>;
+      case 'CANCELLED':
+        return <Badge color="red" variant="light" size="xs">Cancelled Session</Badge>;
+      case 'REJECTED':
+        return <Badge color="red" variant="light" size="xs">Rejected Session</Badge>;
+      default:
+        return null;
     }
-  }
+  };
 
   const headerBg = isDark ? theme.colors.dark[7] : '#f0f2f5'; // WhatsApp header color
   const borderBottomColor = isDark ? theme.colors.dark[8] : '#e9edef';
@@ -44,8 +59,7 @@ const ChatHeader = ({
     <Box
       component="header"
       style={{
-        height: 60,
-        padding: '0 16px',
+        padding: '12px 20px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -53,18 +67,17 @@ const ChatHeader = ({
         backgroundColor: headerBg,
         width: '100%',
         zIndex: 10,
+        flexShrink: 0,
       }}
     >
-      <Group spacing="sm" noWrap>
+      <Group spacing="sm" noWrap style={{ flex: 1, minWidth: 0 }}>
         {/* Mobile Back Button */}
         <ActionIcon
           onClick={onBack}
           variant="transparent"
           style={{
             display: 'inline-flex',
-            '@media (min-width: 768px)': {
-              display: 'none',
-            },
+            flexShrink: 0,
           }}
           className="md:hidden"
         >
@@ -76,21 +89,29 @@ const ChatHeader = ({
           alt={otherParticipant.name}
           radius="xl"
           size="md"
+          style={{ border: `2px solid ${isDark ? theme.colors.dark[5] : theme.colors.gray[2]}`, flexShrink: 0 }}
         >
           {otherParticipant.name?.charAt(0).toUpperCase()}
         </Avatar>
 
-        <Box style={{ cursor: 'pointer' }} onClick={() => navigate(`/profile/${otherParticipantId}`)}>
-          <Text weight={500} size="md" style={{ color: nameColor, lineHeight: 1.2 }}>
+        <Box style={{ cursor: 'pointer', flex: 1, minWidth: 0 }} onClick={() => navigate(`/profile/${otherParticipantId}`)}>
+          <Text weight={600} size="sm" lineClamp={1} style={{ color: nameColor, lineHeight: 1.2 }}>
             {otherParticipant.name}
           </Text>
-          <Text size="xs" style={{ color: subtitleColor, lineHeight: 1.2 }} lineClamp={1}>
-            {isOnline ? 'online' : skillExchangeLabel}
+          <Group spacing="xs" align="center" noWrap mt={2}>
+            <Text size="xs" style={{ color: subtitleColor, fontWeight: 500 }} lineClamp={1}>
+              {skillExchangeText}
+            </Text>
+            {latestSession && <Box style={{ flexShrink: 0 }}>{getStatusBadge(latestSession.status)}</Box>}
+          </Group>
+          <Text size="11px" style={{ color: isOnline ? (isDark ? theme.colors.green[4] : theme.colors.green[7]) : subtitleColor, display: 'flex', alignItems: 'center', gap: '4px', mt: 2, lineHeight: 1.2 }}>
+            {isOnline && <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: isDark ? theme.colors.green[4] : theme.colors.green[7] }} />}
+            {isOnline ? 'online' : 'Last seen today'}
           </Text>
         </Box>
       </Group>
 
-      <Group spacing="xs">
+      <Group spacing="xs" style={{ flexShrink: 0 }}>
         <Menu position="bottom-end" shadow="md">
           <Menu.Target>
             <ActionIcon variant="transparent">
@@ -118,6 +139,8 @@ const ChatHeader = ({
       </Group>
     </Box>
   );
-};
+});
+
+ChatHeader.displayName = 'ChatHeader';
 
 export default ChatHeader;

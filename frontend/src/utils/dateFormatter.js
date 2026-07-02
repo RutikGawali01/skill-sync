@@ -65,3 +65,40 @@ export const formatSessionTime = (dateString) => {
     hour12: true
   });
 };
+
+/**
+ * Formats a date for a message bubble timestamp (e.g. "9:45 PM").
+ */
+export const formatBubbleTime = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const timeOptions = { hour: 'numeric', minute: '2-digit', hour12: true };
+  return date.toLocaleTimeString([], timeOptions);
+};
+
+/**
+ * Formats a date for a daily separator in the chat timeline (e.g. "Today", "Yesterday", "29 June").
+ */
+export const formatDateSeparator = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const now = new Date();
+  
+  // Clear times to compare days
+  const dDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const dNow = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  
+  const diffTime = dNow.getTime() - dDate.getTime();
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) {
+    return 'Today';
+  } else if (diffDays === 1) {
+    return 'Yesterday';
+  } else if (date.getFullYear() === now.getFullYear()) {
+    return date.toLocaleDateString([], { day: 'numeric', month: 'long' });
+  } else {
+    return date.toLocaleDateString([], { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+};
+

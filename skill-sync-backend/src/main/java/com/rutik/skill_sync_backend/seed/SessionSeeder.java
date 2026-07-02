@@ -12,6 +12,8 @@ import com.rutik.skill_sync_backend.session.repository.SessionRepository;
 import com.rutik.skill_sync_backend.skill.entity.Skill;
 import com.rutik.skill_sync_backend.skill.entity.UserSkill;
 import com.rutik.skill_sync_backend.skill.enums.SkillType;
+import com.rutik.skill_sync_backend.skill.enums.SkillLevel;
+import com.rutik.skill_sync_backend.skill.repository.SkillRepository;
 import com.rutik.skill_sync_backend.skill.repository.UserSkillRepository;
 import com.rutik.skill_sync_backend.user.entity.User;
 import com.rutik.skill_sync_backend.user.repository.UserRepository;
@@ -36,6 +38,7 @@ public class SessionSeeder {
     private final SessionRepository sessionRepository;
     private final UserRepository userRepository;
     private final UserSkillRepository userSkillRepository;
+    private final SkillRepository skillRepository;
     private final AvailabilityRepository availabilityRepository;
     private final MatchRepository matchRepository;
     private final MatchService matchService;
@@ -51,6 +54,7 @@ public class SessionSeeder {
     public List<Session> seed() {
         if (sessionRepository.count() > 0) {
             log.info("Sessions already exist. Skipping session seeding.");
+            seedAcceptedDemoSessions();
             return sessionRepository.findAll().stream()
                     .filter(s -> s.getStatus() == SessionStatus.COMPLETED)
                     .toList();
@@ -164,6 +168,8 @@ public class SessionSeeder {
         sessionRepository.saveAll(otherSessions);
         log.info("Seeded additional sessions (Accepted, Pending, Cancelled, Rejected).");
 
+        seedAcceptedDemoSessions();
+
         return sessionRepository.findAll().stream()
                 .filter(s -> s.getStatus() == SessionStatus.COMPLETED)
                 .toList();
@@ -262,5 +268,101 @@ public class SessionSeeder {
             this.teacher = teacher;
             this.learner = learner;
         }
+    }
+
+    private void seedAcceptedDemoSessions() {
+        log.info("Checking and seeding accepted demo sessions for WebSocket testing...");
+        List<User> allUsers = userRepository.findAll();
+        
+        User u1 = allUsers.stream().filter(u -> u.getName().equalsIgnoreCase("Rahul Patil")).findFirst().orElse(null);
+        User u2 = allUsers.stream().filter(u -> u.getName().equalsIgnoreCase("Priya Sharma")).findFirst().orElse(null);
+        User u3 = allUsers.stream().filter(u -> u.getName().equalsIgnoreCase("Amit Kumar")).findFirst().orElse(null);
+        User u4 = allUsers.stream().filter(u -> u.getName().equalsIgnoreCase("Neha Singh")).findFirst().orElse(null);
+        User u5 = allUsers.stream().filter(u -> u.getName().equalsIgnoreCase("Rohan Mehta")).findFirst().orElse(null);
+        User u6 = allUsers.stream().filter(u -> u.getName().equalsIgnoreCase("Sneha Nair")).findFirst().orElse(null);
+        User u7 = allUsers.stream().filter(u -> u.getName().equalsIgnoreCase("Vikram Rathore")).findFirst().orElse(null);
+        User u8 = allUsers.stream().filter(u -> u.getName().equalsIgnoreCase("Ananya Iyer")).findFirst().orElse(null);
+
+        if (u1 == null || u2 == null) {
+            log.warn("Demo users not found. Skipping accepted demo sessions seeding.");
+            return;
+        }
+
+        // Define pairings
+        List<User[]> pairings = new ArrayList<>();
+        pairings.add(new User[]{u1, u2}); // User 1 <-> User 2 (Primary)
+        if (u3 != null) pairings.add(new User[]{u1, u3}); // User 1 <-> User 3
+        if (u4 != null) pairings.add(new User[]{u1, u4}); // User 1 <-> User 4
+        if (u5 != null) pairings.add(new User[]{u2, u5}); // User 2 <-> User 5
+        if (u6 != null) pairings.add(new User[]{u3, u6}); // User 3 <-> User 6
+        if (u7 != null) pairings.add(new User[]{u4, u7}); // User 4 <-> User 7
+        if (u8 != null) pairings.add(new User[]{u5, u8}); // User 5 <-> User 8
+
+        for (User[] pair : pairings) {
+            User ua = pair[0];
+            User ub = pair[1];
+
+            // Check if accepted session already exists between these users
+            boolean exists = sessionRepository.findAll().stream()
+                    .anyMatch(s -> s.getStatus() == SessionStatus.ACCEPTED 
+                            && ((s.getProvider().getId().equals(ua.getId()) && s.getRequester().getId().equals(ub.getId()))
+                                || (s.getProvider().getId().equals(ub.getId()) && s.getRequester().getId().equals(ua.getId()))));
+
+            if (!exists) {
+                log.info("Seeding accepted session between {} and {}", ua.getName(), ub.getName());
+                SkillRole sr = getOrCreateSkillRole(ua, ub);
+                LocalDateTime[] times = determineSessionTimes(sr.teacher, false); // future
+                Session session = createSession(sr, times[0], times[1], SessionStatus.ACCEPTED);
+                sessionRepository.save(session);
+            } else {
+                log.debug("Accepted session between {} and {} already exists. Skipping.", ua.getName(), ub.getName());
+            }
+        }
+    }
+
+    private SkillRole getOrCreateSkillRole(User uA, User uB) {
+        SkillRole sr = determineSkillAndRoles(uA, uB);
+        if (sr != null) return sr;
+
+        List<UserSkill> skillsA = userSkillRepository.findByUserId(uA.getId());
+        List<UserSkill> skillsB = userSkillRepository.findByUserId(uB.getId());
+
+        UserSkill offerA = skillsA.stream()
+                .filter(us -> us.getType() == SkillType.OFFER)
+                .findFirst()
+                .orElse(null);
+
+        if (offerA != null) {
+            UserSkill wantB = skillsB.stream()
+                    .filter(us -> us.getSkill().getId().equals(offerA.getSkill().getId()) && us.getType() == SkillType.WANT)
+                    .findFirst()
+                    .orElse(null);
+            if (wantB == null) {
+                wantB = createUserSkill(uB, offerA.getSkill(), SkillType.WANT, SkillLevel.BEGINNER);
+                userSkillRepository.save(wantB);
+            }
+            return new SkillRole(offerA.getSkill(), uA, uB);
+        }
+
+        List<Skill> allSkills = skillRepository.findAll();
+        Skill randomSkill = allSkills.get(random.nextInt(allSkills.size()));
+
+        UserSkill forceOfferA = createUserSkill(uA, randomSkill, SkillType.OFFER, SkillLevel.INTERMEDIATE);
+        UserSkill forceWantB = createUserSkill(uB, randomSkill, SkillType.WANT, SkillLevel.BEGINNER);
+        userSkillRepository.save(forceOfferA);
+        userSkillRepository.save(forceWantB);
+
+        return new SkillRole(randomSkill, uA, uB);
+    }
+
+    private UserSkill createUserSkill(User user, Skill skill, SkillType type, SkillLevel level) {
+        return UserSkill.builder()
+                .user(user)
+                .skill(skill)
+                .type(type)
+                .level(level)
+                .isVisible(true)
+                .isVerified(true)
+                .build();
     }
 }

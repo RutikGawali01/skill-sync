@@ -1,76 +1,106 @@
-import React from 'react';
-import { Box, Group, Text, ThemeIcon, useMantineTheme } from '@mantine/core';
-import { Calendar, Clock, MapPin, Video, CheckCircle, Clock3 } from 'lucide-react';
-import { formatSessionDate, formatSessionTime } from '../../utils/dateFormatter';
+import React, { memo } from 'react';
+import { Box, Group, Text, useMantineTheme } from '@mantine/core';
+import { Calendar, CheckCircle, Clock3, AlertCircle, XCircle } from 'lucide-react';
+import { formatSessionDate } from '../../utils/dateFormatter';
 import { useTheme } from '../../context/ThemeContext';
 
-const SessionBanner = ({ session }) => {
+const SessionBanner = memo(({ session }) => {
   const theme = useMantineTheme();
   const { isDark } = useTheme();
 
   const {
-    id: sessionId,
     skillOffered,
     skillRequested,
-    teacherName,
-    learnerName,
     scheduledDate,
-    scheduledTime,
-    durationMinutes,
-    mode,
     status,
   } = session;
 
-  const isOnline = mode === 'ONLINE';
+  const getStatusConfig = () => {
+    switch (status) {
+      case 'COMPLETED':
+        return {
+          label: 'Completed Session',
+          color: 'green',
+          icon: CheckCircle
+        };
+      case 'ACCEPTED':
+        return {
+          label: 'Scheduled Session',
+          color: 'blue',
+          icon: Clock3
+        };
+      case 'PENDING':
+        return {
+          label: 'Pending Session Request',
+          color: 'yellow',
+          icon: Clock3
+        };
+      case 'CANCELLED':
+        return {
+          label: 'Cancelled Session',
+          color: 'red',
+          icon: XCircle
+        };
+      case 'REJECTED':
+        return {
+          label: 'Rejected Session',
+          color: 'red',
+          icon: XCircle
+        };
+      default:
+        return {
+          label: 'Session',
+          color: 'gray',
+          icon: AlertCircle
+        };
+    }
+  };
+
+  const config = getStatusConfig();
+  const Icon = config.icon;
+
+  const bg = isDark ? theme.colors.dark[6] : theme.colors.gray[1];
+  const border = isDark ? `1px solid ${theme.colors.dark[5]}` : `1px solid ${theme.colors.gray[3]}`;
+  const textColor = isDark ? theme.colors.gray[3] : theme.colors.gray[8];
+  const subtitleColor = isDark ? theme.colors.gray[5] : theme.colors.gray[6];
 
   return (
-    <Box style={{ display: 'flex', justifyContent: 'center', margin: '12px 0' }}>
+    <Box style={{ display: 'flex', justifyContent: 'center', margin: '8px 0', width: '100%' }}>
       <Box
         style={{
-          backgroundColor: isDark ? theme.colors.dark[6] : '#fff3c4',
-          color: isDark ? theme.colors.gray[4] : '#54656f',
+          backgroundColor: bg,
+          border: border,
           padding: '8px 16px',
-          borderRadius: '8px',
-          fontSize: '12px',
-          boxShadow: '0 1px 0.5px rgba(11,20,26,.13)',
-          maxWidth: '90%',
-          textAlign: 'center',
+          borderRadius: '12px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '4px',
+          maxWidth: '320px',
+          width: '100%',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
         }}
       >
-        <Group position="center" spacing={4} noWrap style={{ marginBottom: 4 }}>
-          {status === 'ACCEPTED' ? (
-            <Clock3 size={14} style={{ color: theme.colors.blue[6] }} />
-          ) : status === 'COMPLETED' ? (
-            <CheckCircle size={14} style={{ color: theme.colors.green[6] }} />
-          ) : null}
-          <Text size="xs" weight={600}>
-            Session {status === 'COMPLETED' ? 'Completed' : 'Scheduled'}: {skillOffered}
+        <Group spacing={6} noWrap>
+          <Icon size={14} style={{ color: theme.colors[config.color][6] }} />
+          <Text size="xs" weight={600} style={{ color: textColor }}>
+            {config.label}
           </Text>
         </Group>
         
-        <Text size="xs" style={{ marginBottom: 4 }}>
-          {teacherName} teaching {learnerName}
+        <Text size="xs" weight={500} style={{ color: subtitleColor }}>
+          {skillOffered} ↔ {skillRequested}
         </Text>
 
-        <Group position="center" spacing="xs" noWrap>
-          <Group spacing={4} noWrap>
-            <Calendar size={12} />
-            <Text size="xs">{formatSessionDate(scheduledDate)}</Text>
-          </Group>
-          <Text size="xs">·</Text>
-          <Group spacing={4} noWrap>
-            <Clock size={12} />
-            <Text size="xs">{formatSessionTime(scheduledTime)}</Text>
-          </Group>
-          <Text size="xs">·</Text>
-          <Group spacing={4} noWrap>
-            {isOnline ? <Video size={12} /> : <MapPin size={12} />}
-            <Text size="xs">{isOnline ? 'Online' : 'In-Person'}</Text>
-          </Group>
+        <Group spacing={4} noWrap style={{ color: subtitleColor }}>
+          <Calendar size={12} />
+          <Text size="10px">{formatSessionDate(scheduledDate)}</Text>
         </Group>
       </Box>
     </Box>
   );
-};
+});
+
+SessionBanner.displayName = 'SessionBanner';
 
 export default SessionBanner;

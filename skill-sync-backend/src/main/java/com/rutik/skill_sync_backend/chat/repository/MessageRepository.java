@@ -92,4 +92,9 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
         AND m.deleted = false
     """)
     List<Message> findPendingSentMessagesForReceiver(@Param("conversationIds") List<Long> conversationIds, @Param("userId") Long userId);
+
+    /**
+     * Check if any messages exist for a specific session ID.
+     */
+    boolean existsBySessionId(Long sessionId);
 }

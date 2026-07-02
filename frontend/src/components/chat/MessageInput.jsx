@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { ActionIcon, Box, Group, Paper, Text, TextInput, useMantineTheme } from '@mantine/core';
+import React, { useState, memo } from 'react';
+import { ActionIcon, Box, Group, Paper, Text, Textarea, useMantineTheme } from '@mantine/core';
 import { AlertCircle, Send, Smile, Paperclip } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
 /**
  * Message input component supporting locks based on active session status.
  */
-const MessageInput = ({ latestSession, onSend, onKeyPress, sending }) => {
+const MessageInput = memo(({ latestSession, onSend, onKeyPress, sending }) => {
   const theme = useMantineTheme();
   const { isDark } = useTheme();
   const [content, setContent] = useState('');
@@ -18,8 +18,8 @@ const MessageInput = ({ latestSession, onSend, onKeyPress, sending }) => {
   };
 
   const handleKeyDown = (e) => {
-    // Send on Enter
-    if (e.key === 'Enter') {
+    // Send on Enter (without Shift key)
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
@@ -61,7 +61,8 @@ const MessageInput = ({ latestSession, onSend, onKeyPress, sending }) => {
         style={{
           backgroundColor: inputBg,
           display: 'flex',
-          justifyContent: 'center'
+          justifyContent: 'center',
+          flexShrink: 0,
         }}
       >
         <Paper
@@ -91,17 +92,22 @@ const MessageInput = ({ latestSession, onSend, onKeyPress, sending }) => {
         backgroundColor: inputBg,
         display: 'flex',
         alignItems: 'center',
-        gap: '12px'
+        gap: '12px',
+        flexShrink: 0,
+        borderTop: `1px solid ${isDark ? theme.colors.dark[8] : '#e9edef'}`,
       }}
     >
+      {/* Emoji selector placeholder */}
       <ActionIcon variant="transparent">
         <Smile size={24} style={{ color: iconColor }} />
       </ActionIcon>
+      
+      {/* Attachments placeholder */}
       <ActionIcon variant="transparent">
         <Paperclip size={24} style={{ color: iconColor }} />
       </ActionIcon>
       
-      <TextInput
+      <Textarea
         placeholder="Type a message"
         value={content}
         onChange={(e) => {
@@ -112,10 +118,15 @@ const MessageInput = ({ latestSession, onSend, onKeyPress, sending }) => {
         style={{ flex: 1 }}
         radius="md"
         size="md"
+        autosize
+        minRows={1}
+        maxRows={4}
         styles={{
           input: {
             backgroundColor: textAreaBg,
             border: 'none',
+            paddingTop: '8px',
+            paddingBottom: '8px',
             '&:focus': {
               border: 'none',
             }
@@ -136,7 +147,8 @@ const MessageInput = ({ latestSession, onSend, onKeyPress, sending }) => {
       </ActionIcon>
     </Box>
   );
-};
+});
+
+MessageInput.displayName = 'MessageInput';
 
 export default MessageInput;
-

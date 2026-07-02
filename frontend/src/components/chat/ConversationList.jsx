@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Box, ScrollArea, Stack, useMantineTheme } from '@mantine/core';
 import { MessageSquare, Search } from 'lucide-react';
 import ConversationCard from './ConversationCard';
@@ -9,7 +9,7 @@ import { useTheme } from '../../context/ThemeContext';
 /**
  * Scrollable list of conversations.
  */
-const ConversationList = ({
+const ConversationList = memo(({
   conversations = [],
   searchQuery = '',
   loading = false,
@@ -22,10 +22,11 @@ const ConversationList = ({
   const theme = useMantineTheme();
   const { isDark } = useTheme();
 
-  // Client-side search filtering
-  const filteredConversations = conversations.filter((c) =>
-    c.otherParticipantName?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter conversations:
+  // Client-side search matching otherParticipantName.
+  const filteredConversations = conversations.filter((c) => {
+    return c.otherParticipantName?.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   const handleScroll = (event) => {
     const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
@@ -36,8 +37,18 @@ const ConversationList = ({
     }
   };
 
+  const listBg = isDark ? theme.colors.dark[8] : '#ffffff';
+
   return (
-    <Box style={{ flex: 1, minHeight: 0, backgroundColor: isDark ? theme.colors.dark[8] : '#ffffff' }}>
+    <Box 
+      style={{ 
+        flex: 1, 
+        minHeight: 0, 
+        backgroundColor: listBg,
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
       {loading && conversations.length === 0 ? (
         <ConversationSkeleton />
       ) : filteredConversations.length === 0 ? (
@@ -51,14 +62,14 @@ const ConversationList = ({
         ) : (
           <EmptyState
             icon={MessageSquare}
-            title="💬 No Conversations"
+            title="No Conversations"
             description="Start a learning session to chat with other users."
             height="100%"
           />
         )
       ) : (
         <ScrollArea
-          style={{ height: '100%' }}
+          style={{ flex: 1, height: '100%' }}
           viewportRef={(ref) => {
             if (ref) ref.onscroll = handleScroll;
           }}
@@ -78,7 +89,8 @@ const ConversationList = ({
       )}
     </Box>
   );
-};
+});
+
+ConversationList.displayName = 'ConversationList';
 
 export default ConversationList;
-

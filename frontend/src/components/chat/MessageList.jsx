@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { Box, ScrollArea, Stack, useMantineTheme } from '@mantine/core';
+import React, { useEffect, useRef, memo } from 'react';
+import { Box, ScrollArea, Stack, Text, useMantineTheme } from '@mantine/core';
 import { buildTimeline } from '../../utils/timelineBuilder';
 import MessageBubble from './MessageBubble';
 import SessionBanner from './SessionBanner';
@@ -9,10 +9,39 @@ import TypingIndicator from './TypingIndicator';
 import EmptyConversation from './EmptyConversation';
 import MessageSkeleton from './MessageSkeleton';
 import { useTheme } from '../../context/ThemeContext';
-import { formatSessionDate } from '../../utils/dateFormatter';
+import { formatSessionDate, formatDateSeparator } from '../../utils/dateFormatter';
 import { AlertTriangle, CheckCircle } from 'lucide-react';
 
-const MessageList = ({
+const DateSeparator = ({ dateText }) => {
+  const theme = useMantineTheme();
+  const { isDark } = useTheme();
+  
+  const wsBg = isDark ? '#182229' : '#ffffff';
+  const wsColor = isDark ? '#8696a0' : '#667781';
+  
+  return (
+    <Box style={{ display: 'flex', justifyContent: 'center', margin: '16px 0', width: '100%' }}>
+      <Box
+        style={{
+          backgroundColor: wsBg,
+          color: wsColor,
+          padding: '6px 12px',
+          borderRadius: '8px',
+          fontSize: '11px',
+          fontWeight: 600,
+          boxShadow: '0 1px 0.5px rgba(11,20,26,.13)',
+          border: isDark ? 'none' : '1px solid rgba(0,0,0,0.05)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px',
+        }}
+      >
+        <Text size="11px" style={{ fontWeight: 600 }}>{dateText}</Text>
+      </Box>
+    </Box>
+  );
+};
+
+const MessageList = memo(({
   messages = [],
   sessions = [],
   loading = false,
@@ -69,17 +98,33 @@ const MessageList = ({
     prevScrollHeightRef.current = 0;
   }, [sessions.length > 0 ? sessions[0].id : null]);
 
-  const renderTimelineItem = (item) => {
+  const renderTimelineItem = (item, index) => {
     switch (item.type) {
       case 'SESSION_CARD':
         return <SessionBanner key={item.id} session={item.data} />;
 
       case 'MESSAGE':
+        const prevItem = index > 0 ? timelineItems[index - 1] : null;
+        const nextItem = index < timelineItems.length - 1 ? timelineItems[index + 1] : null;
+
+        const isFirstInGroup =
+          !prevItem ||
+          prevItem.type !== 'MESSAGE' ||
+          String(prevItem.data.senderId) !== String(item.data.senderId);
+
+        const isLastInGroup =
+          !nextItem ||
+          nextItem.type !== 'MESSAGE' ||
+          String(nextItem.data.senderId) !== String(item.data.senderId);
+
         return (
           <MessageBubble
             key={item.id}
             message={item.data}
-            isOwn={item.data.senderId === currentUserId}
+            isOwn={item.data.senderId != null && currentUserId != null && String(item.data.senderId) === String(currentUserId)}
+            isFirstInGroup={isFirstInGroup}
+            isLastInGroup={isLastInGroup}
+            otherParticipant={otherParticipant}
           />
         );
 
@@ -124,7 +169,7 @@ const MessageList = ({
   }
 
   return (
-    <Box style={{ flex: 1, minHeight: 0, position: 'relative', backgroundColor: listBg }}>
+    <Box style={{ flex: 1, minHeight: 0, position: 'relative', backgroundColor: listBg, display: 'flex', flexDirection: 'column' }}>
       {/* Background doodle overlay (optional, but typical for WhatsApp) */}
       <Box 
         style={{
@@ -141,14 +186,32 @@ const MessageList = ({
         }}
       />
       <ScrollArea
-        style={{ height: '100%', position: 'relative', zIndex: 1 }}
+        style={{ flex: 1, height: '100%', position: 'relative', zIndex: 1 }}
         viewportRef={(ref) => {
           if (ref) ref.onscroll = handleScroll;
           scrollViewportRef.current = ref;
         }}
       >
-        <Stack spacing="xs" p="md">
-          {timelineItems.map(renderTimelineItem)}
+        <Stack spacing={0} p="md">
+          {(() => {
+            const renderedItems = [];
+            let lastDateStr = null;
+
+            timelineItems.forEach((item, index) => {
+              if (item.timestamp) {
+                const dateStr = formatDateSeparator(item.timestamp);
+                if (dateStr && dateStr !== lastDateStr) {
+                  renderedItems.push(
+                    <DateSeparator key={`date-sep-${item.id}`} dateText={dateStr} />
+                  );
+                  lastDateStr = dateStr;
+                }
+              }
+              renderedItems.push(renderTimelineItem(item, index));
+            });
+
+            return renderedItems;
+          })()}
           
           {sessions.length > 0 && messages.length === 0 && (
             <SystemMessage text="Introduce yourself and discuss your upcoming learning session." />
@@ -163,6 +226,8 @@ const MessageList = ({
       </ScrollArea>
     </Box>
   );
-};
+});
+
+MessageList.displayName = 'MessageList';
 
 export default MessageList;

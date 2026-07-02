@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { Box, TextInput, useMantineTheme, ActionIcon } from '@mantine/core';
 import { Search, Filter } from 'lucide-react';
 import ConversationList from './ConversationList';
 import { useTheme } from '../../context/ThemeContext';
 
-const ChatSidebar = ({
+const ChatSidebar = memo(({
   conversations = [],
   loading = false,
   hasMore = false,
@@ -18,7 +18,7 @@ const ChatSidebar = ({
   const [searchQuery, setSearchQuery] = useState('');
 
   const sidebarBg = isDark ? theme.colors.dark[8] : '#ffffff';
-  const borderRightColor = isDark ? theme.colors.dark[7] : '#d1d7db';
+  const borderColor = isDark ? theme.colors.dark[7] : '#e9edef';
   const searchBg = isDark ? theme.colors.dark[7] : '#f0f2f5';
 
   return (
@@ -28,16 +28,19 @@ const ChatSidebar = ({
         flexDirection: 'column',
         height: '100%',
         backgroundColor: sidebarBg,
-        borderRight: `1px solid ${borderRightColor}`,
       }}
     >
-      {/* WhatsApp style Sidebar Header with Search */}
-      <Box p="sm" style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        gap: '8px',
-        borderBottom: `1px solid ${borderRightColor}` 
-      }}>
+      {/* Search Header */}
+      <Box 
+        p="sm" 
+        style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '8px',
+          borderBottom: `1px solid ${borderColor}`,
+          flexShrink: 0,
+        }}
+      >
         <TextInput
           placeholder="Search or start new chat"
           icon={<Search size={16} />}
@@ -74,6 +77,8 @@ const ChatSidebar = ({
       />
     </Box>
   );
-};
+});
+
+ChatSidebar.displayName = 'ChatSidebar';
 
 export default ChatSidebar;

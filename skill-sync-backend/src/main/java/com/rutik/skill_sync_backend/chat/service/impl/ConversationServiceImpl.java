@@ -20,9 +20,14 @@ import com.rutik.skill_sync_backend.review.entity.Review;
 import com.rutik.skill_sync_backend.review.repository.ReviewRepository;
 import com.rutik.skill_sync_backend.session.entity.Session;
 import com.rutik.skill_sync_backend.session.enums.SessionStatus;
+import com.rutik.skill_sync_backend.session.enums.SessionMode;
 import com.rutik.skill_sync_backend.session.repository.SessionRepository;
+import com.rutik.skill_sync_backend.skill.entity.UserSkill;
+import com.rutik.skill_sync_backend.skill.enums.SkillType;
+import com.rutik.skill_sync_backend.skill.repository.UserSkillRepository;
 import com.rutik.skill_sync_backend.user.entity.User;
 import com.rutik.skill_sync_backend.user.repository.UserRepository;
+import java.util.Comparator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -55,6 +60,7 @@ public class ConversationServiceImpl implements ConversationService {
     private final MessageRepository messageRepository;
     private final SessionRepository sessionRepository;
     private final ReviewRepository reviewRepository;
+    private final UserSkillRepository userSkillRepository;
     private final PresenceService presenceService;
     private final ChatMapper chatMapper;
 
@@ -189,10 +195,11 @@ public class ConversationServiceImpl implements ConversationService {
                         }
                     }
 
+                    String[] sessionSkills = getSessionSkills(s);
                     return SessionCardResponse.builder()
                             .id(s.getId())
-                            .skillOffered(s.getSkill().getName())
-                            .skillRequested(s.getSkill().getName())
+                            .skillOffered(sessionSkills[0])
+                            .skillRequested(sessionSkills[1])
                             .teacherName(s.getProvider().getName())
                             .learnerName(s.getRequester().getName())
                             .teacherProfilePicUrl(s.getProvider().getProfilePicUrl())
@@ -285,6 +292,22 @@ public class ConversationServiceImpl implements ConversationService {
                 lastMsgSentAt = conv.getLatestMessage().getCreatedAt();
             }
 
+            Session latestSession = null;
+            if (!sessionsBetween.isEmpty()) {
+                latestSession = sessionsBetween.stream()
+                        .max(Comparator.comparing(s -> s.getStartTime() != null ? s.getStartTime() : s.getCreatedAt()))
+                        .orElse(sessionsBetween.get(sessionsBetween.size() - 1));
+            }
+
+            String skillExchangeText = "Skill Exchange";
+            String sessionStatusText = null;
+
+            if (latestSession != null) {
+                String[] sessionSkills = getSessionSkills(latestSession);
+                skillExchangeText = String.format("%s ↔ %s", sessionSkills[0], sessionSkills[1]);
+                sessionStatusText = latestSession.getStatus().toString();
+            }
+
             summaryList.add(ConversationSummaryResponse.builder()
                     .conversationId(conv.getId())
                     .type(conv.getType())
@@ -297,6 +320,8 @@ public class ConversationServiceImpl implements ConversationService {
                     .otherParticipantId(otherUserId)
                     .otherParticipantName(otherCp.getUser().getName())
                     .otherParticipantProfilePicUrl(otherCp.getUser().getProfilePicUrl())
+                    .skillExchange(skillExchangeText)
+                    .sessionStatus(sessionStatusText)
                     .build());
         }
 
@@ -333,5 +358,39 @@ public class ConversationServiceImpl implements ConversationService {
 
         participant.setMuted(mute);
         conversationParticipantRepository.save(participant);
+    }
+
+    private String[] getSessionSkills(Session s) {
+        String offered = s.getSkill().getName();
+        String requested = offered; // default fallback
+
+        List<UserSkill> providerSkills = userSkillRepository.findByUserId(s.getProvider().getId());
+        List<UserSkill> requesterSkills = userSkillRepository.findByUserId(s.getRequester().getId());
+
+        List<String> providerWants = providerSkills.stream()
+                .filter(us -> us.getType() == SkillType.WANT)
+                .map(us -> us.getSkill().getName())
+                .collect(Collectors.toList());
+
+        List<String> requesterOffers = requesterSkills.stream()
+                .filter(us -> us.getType() == SkillType.OFFER)
+                .map(us -> us.getSkill().getName())
+                .collect(Collectors.toList());
+
+        for (String want : providerWants) {
+            if (requesterOffers.contains(want)) {
+                requested = want;
+                break;
+            }
+        }
+
+        if (requested.equals(offered) && s.getMode() == SessionMode.SKILL_EXCHANGE) {
+            Optional<String> firstOffer = requesterOffers.stream().findFirst();
+            if (firstOffer.isPresent()) {
+                requested = firstOffer.get();
+            }
+        }
+
+        return new String[] { offered, requested };
     }
 }

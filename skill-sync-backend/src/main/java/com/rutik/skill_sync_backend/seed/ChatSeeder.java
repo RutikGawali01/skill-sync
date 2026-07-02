@@ -159,11 +159,6 @@ public class ChatSeeder {
 
     @Transactional
     public void seed() {
-        if (messageRepository.count() > 0) {
-            log.info("Chat messages already exist. Skipping chat seeding.");
-            return;
-        }
-
         log.info("Seeding chat messages for sessions...");
         List<Session> sessions = sessionRepository.findAll().stream()
                 .filter(s -> s.getStatus() == SessionStatus.ACCEPTED || s.getStatus() == SessionStatus.COMPLETED)
@@ -175,6 +170,12 @@ public class ChatSeeder {
         }
 
         for (Session session : sessions) {
+            // Check if messages already exist for this session to ensure idempotency
+            if (messageRepository.existsBySessionId(session.getId())) {
+                log.debug("Session {} already has chat history. Skipping.", session.getId());
+                continue;
+            }
+
             User learner = session.getRequester();
             User teacher = session.getProvider();
 
@@ -213,26 +214,87 @@ public class ChatSeeder {
                 conversationParticipantRepository.save(p2);
             }
 
-            // Generate chat messages (15 to 30 messages per session)
-            int chatLength = random.nextInt(16) + 15;
-            String[] template = CONVERSATION_TEMPLATES[random.nextInt(CONVERSATION_TEMPLATES.length)];
+            // Determine custom scenario properties
+            String nameA = learner.getName();
+            String nameB = teacher.getName();
+            String first = nameA.compareTo(nameB) < 0 ? nameA : nameB;
+            String second = nameA.compareTo(nameB) < 0 ? nameB : nameA;
+            String pairKey = first + " <-> " + second;
 
+            int chatLength = random.nextInt(16) + 15;
             LocalDateTime msgTime = session.getCreatedAt().plusHours(2);
+            boolean isScenarioB = false;
+            boolean isScenarioC = false;
+            boolean isScenarioE = false;
+            boolean isScenarioF = false;
+
+            if (pairKey.equals("Priya Sharma <-> Rahul Patil") || pairKey.equals("Neha Singh <-> Vikram Rathore")) {
+                chatLength = 32;
+            } else if (pairKey.equals("Amit Kumar <-> Rahul Patil")) {
+                chatLength = 20;
+                msgTime = LocalDateTime.now().minusMinutes(70);
+                isScenarioB = true;
+            } else if (pairKey.equals("Neha Singh <-> Rahul Patil")) {
+                chatLength = 18;
+                isScenarioF = true;
+            } else if (pairKey.equals("Priya Sharma <-> Rohan Mehta")) {
+                chatLength = 2;
+                isScenarioC = true;
+            } else if (pairKey.equals("Amit Kumar <-> Sneha Nair")) {
+                chatLength = 15;
+                msgTime = LocalDateTime.now().minusDays(6);
+            } else if (pairKey.equals("Ananya Iyer <-> Rohan Mehta")) {
+                chatLength = 0;
+                isScenarioE = true;
+            }
+
+            if (isScenarioE) {
+                log.info("Scenario E: Created conversation for {} and {} with 0 messages.", nameA, nameB);
+                continue;
+            }
+
+            String[] customMessages = null;
+            if (isScenarioC) {
+                customMessages = new String[] {
+                    "Hi! Looking forward to our learning session.",
+                    "Hello! Me too, see you soon."
+                };
+            }
+
+            // Generate chat messages
+            String[] template = CONVERSATION_TEMPLATES[random.nextInt(CONVERSATION_TEMPLATES.length)];
             Message lastMessage = null;
 
             for (int i = 0; i < chatLength; i++) {
                 String content;
-                if (i < template.length) {
+                if (customMessages != null && i < customMessages.length) {
+                    content = customMessages[i];
+                } else if (i < template.length) {
                     content = template[i];
                 } else {
                     content = FOLLOW_UP_POOL[(i - template.length) % FOLLOW_UP_POOL.length];
                 }
 
                 // Alternate sender: requester (learner) on even, provider (teacher) on odd
-                User sender = (i % 2 == 0) ? learner : teacher;
+                User sender;
+                if (isScenarioF && i >= chatLength - 3) {
+                    // For Scenario F unread messages, sender must be Neha Singh (not Rahul Patil)
+                    sender = learner.getName().equalsIgnoreCase("Rahul Patil") ? teacher : learner;
+                } else {
+                    sender = (i % 2 == 0) ? learner : teacher;
+                }
 
-                // Message status: READ for past sessions, SENT/DELIVERED for future sessions
-                MessageStatus status = session.getStatus() == SessionStatus.COMPLETED ? MessageStatus.READ : MessageStatus.DELIVERED;
+                // Message status: READ for past/completed, DELIVERED/SENT for future
+                MessageStatus status = MessageStatus.READ;
+                if (session.getStatus() == SessionStatus.COMPLETED) {
+                    status = MessageStatus.READ;
+                } else {
+                    if (isScenarioF && i >= chatLength - 3) {
+                        status = MessageStatus.DELIVERED;
+                    } else {
+                        status = MessageStatus.READ; // read for older messages in accepted sessions
+                    }
+                }
 
                 Message message = Message.builder()
                         .conversation(conversation)
@@ -251,7 +313,11 @@ public class ChatSeeder {
                 lastMessage = messageRepository.save(message);
                 
                 // Increment timestamp sequentially
-                msgTime = msgTime.plusMinutes(random.nextInt(35) + 5);
+                if (isScenarioB) {
+                    msgTime = msgTime.plusMinutes(3);
+                } else {
+                    msgTime = msgTime.plusMinutes(random.nextInt(35) + 5);
+                }
             }
 
             // Update conversation with latest message metadata
@@ -260,8 +326,24 @@ public class ChatSeeder {
                 conversation.setUpdatedAt(lastMessage.getCreatedAt());
                 conversationRepository.save(conversation);
             }
+
+            if (isScenarioF) {
+                // Find Rahul Patil participant and set unreadCount to 3
+                final Long rahulId = learner.getName().equalsIgnoreCase("Rahul Patil") 
+                        ? learner.getId() 
+                        : teacher.getId();
+                
+                ConversationParticipant participant = conversationParticipantRepository
+                        .findByConversationIdAndUserIdAndDeletedFalse(conversation.getId(), rahulId)
+                        .orElse(null);
+                
+                if (participant != null) {
+                    participant.setUnreadCount(3);
+                    conversationParticipantRepository.save(participant);
+                }
+            }
         }
 
-        log.info("Successfully seeded chat history for {} sessions.", sessions.size());
+        log.info("Successfully seeded chat history.");
     }
 }
