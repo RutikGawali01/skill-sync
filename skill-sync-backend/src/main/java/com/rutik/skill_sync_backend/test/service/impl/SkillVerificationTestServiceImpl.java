@@ -26,6 +26,9 @@ import com.rutik.skill_sync_backend.test.util.TestEvaluationUtil;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
+import com.rutik.skill_sync_backend.common.constants.CacheNames;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -162,6 +165,12 @@ public class SkillVerificationTestServiceImpl implements SkillVerificationTestSe
     }
 
     @Override
+    @Caching(evict = {
+        @CacheEvict(value = CacheNames.SKILL_CACHE, allEntries = true),
+        @CacheEvict(value = CacheNames.PROFILE_CACHE, allEntries = true),
+        @CacheEvict(value = CacheNames.MATCH_CACHE, allEntries = true),
+        @CacheEvict(value = CacheNames.DASHBOARD_CACHE, allEntries = true)
+    })
     public TestSubmissionResultDto submitTest(
             SubmitTestRequestDto requestDto
     ) {

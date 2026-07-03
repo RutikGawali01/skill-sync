@@ -16,6 +16,10 @@ import com.rutik.skill_sync_backend.user.entity.User;
 import com.rutik.skill_sync_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
+import com.rutik.skill_sync_backend.common.constants.CacheNames;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -33,6 +37,11 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     private final UserRepository userRepository;
 
     @Override
+    @Caching(evict = {
+        @CacheEvict(value = CacheNames.AVAILABILITY_CACHE, key = "'availability:' + #userId"),
+        @CacheEvict(value = CacheNames.MATCH_CACHE, allEntries = true),
+        @CacheEvict(value = CacheNames.DASHBOARD_CACHE, key = "'dashboard:' + #userId")
+    })
     public AvailabilityResponseDTO addAvailability(
             Long userId,
             AvailabilityRequestDTO requestDTO
@@ -75,6 +84,11 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     }
 
     @Override
+    @Caching(evict = {
+        @CacheEvict(value = CacheNames.AVAILABILITY_CACHE, key = "'availability:' + #userId"),
+        @CacheEvict(value = CacheNames.MATCH_CACHE, allEntries = true),
+        @CacheEvict(value = CacheNames.DASHBOARD_CACHE, key = "'dashboard:' + #userId")
+    })
     public AvailabilityResponseDTO updateAvailability(
             Long userId,
             Long availabilityId,
@@ -122,6 +136,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     }
 
     @Override
+    @Cacheable(value = CacheNames.AVAILABILITY_CACHE, key = "'availability:' + #userId", unless = "#result == null")
     public List<AvailabilityResponseDTO> getUserAvailability(
             Long userId
     ) {
@@ -189,6 +204,11 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     }
 
     @Override
+    @Caching(evict = {
+        @CacheEvict(value = CacheNames.AVAILABILITY_CACHE, key = "'availability:' + #userId"),
+        @CacheEvict(value = CacheNames.MATCH_CACHE, allEntries = true),
+        @CacheEvict(value = CacheNames.DASHBOARD_CACHE, key = "'dashboard:' + #userId")
+    })
     public void deleteAvailability(
             Long userId,
             Long availabilityId

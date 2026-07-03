@@ -15,6 +15,10 @@ import com.rutik.skill_sync_backend.user.entity.User;
 import com.rutik.skill_sync_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
+import com.rutik.skill_sync_backend.common.constants.CacheNames;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +42,12 @@ public class SkillServiceImpl implements SkillService {
      * ✅ Add skill to current user
      */
     @Override
+    @Caching(evict = {
+        @CacheEvict(value = CacheNames.SKILL_CACHE, allEntries = true),
+        @CacheEvict(value = CacheNames.PROFILE_CACHE, key = "'profile:' + #userId"),
+        @CacheEvict(value = CacheNames.MATCH_CACHE, allEntries = true),
+        @CacheEvict(value = CacheNames.DASHBOARD_CACHE, key = "'dashboard:' + #userId")
+    })
     public UserSkillResponseDTO addSkill(
             Long userId,
             UserSkillRequestDTO request
@@ -130,6 +140,12 @@ public class SkillServiceImpl implements SkillService {
      * ✅ Remove skill from user
      */
     @Override
+    @Caching(evict = {
+        @CacheEvict(value = CacheNames.SKILL_CACHE, allEntries = true),
+        @CacheEvict(value = CacheNames.PROFILE_CACHE, key = "'profile:' + #userId"),
+        @CacheEvict(value = CacheNames.MATCH_CACHE, allEntries = true),
+        @CacheEvict(value = CacheNames.DASHBOARD_CACHE, key = "'dashboard:' + #userId")
+    })
     public void removeSkill(
             Long userId,
             Long skillId,
@@ -168,6 +184,7 @@ public class SkillServiceImpl implements SkillService {
      */
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheNames.SKILL_CACHE, key = "'user_skills:' + #userId", unless = "#result == null")
     public List<UserSkillResponseDTO> getUserSkills(
             Long userId
     ) {
@@ -185,6 +202,7 @@ public class SkillServiceImpl implements SkillService {
      * OFFER / WANT
      */
     @Override
+    @Cacheable(value = CacheNames.SKILL_CACHE, key = "'user_skills_type:' + #userId + ':' + #type", unless = "#result == null")
     public List<UserSkillResponseDTO> getUserSkillsByType(
             Long userId,
             SkillType type
@@ -208,6 +226,7 @@ public class SkillServiceImpl implements SkillService {
      * Used for searchable dropdown in frontend
      */
     @Override
+    @Cacheable(value = CacheNames.SKILL_CACHE, key = "'skills:' + (#keyword != null ? #keyword : '')", unless = "#result == null")
     public List<SkillResponseDTO> getAllSkills(String keyword) {
 
         log.info(
@@ -253,6 +272,7 @@ public class SkillServiceImpl implements SkillService {
     }
 
     @Override
+    @Cacheable(value = CacheNames.SKILL_CACHE, key = "'explore:' + #page + '-' + #size + '-' + (#search != null ? #search.trim() : '') + '-' + (#sortBy != null ? #sortBy : '') + '-' + (#sortDir != null ? #sortDir : '')", unless = "#result == null")
     public PageResponse<ExploreSkillResponseDto> getExploreSkills(
             int page,
             int size,
@@ -413,6 +433,7 @@ public class SkillServiceImpl implements SkillService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheNames.SKILL_CACHE, key = "'verified_badges:' + #userId", unless = "#result == null")
     public List<VerifiedBadgeResponseDto> getVerifiedBadges(
             Long userId
     ) {

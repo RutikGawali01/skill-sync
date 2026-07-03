@@ -19,6 +19,10 @@ import com.rutik.skill_sync_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
+import com.rutik.skill_sync_backend.common.constants.CacheNames;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,6 +61,12 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = CacheNames.REVIEW_CACHE, key = "'reviews:' + #requestDto.revieweeId"),
+        @CacheEvict(value = CacheNames.PROFILE_CACHE, key = "'profile:' + #requestDto.revieweeId"),
+        @CacheEvict(value = CacheNames.TRUST_CACHE, key = "'trust:' + #requestDto.revieweeId"),
+        @CacheEvict(value = CacheNames.DASHBOARD_CACHE, key = "'dashboard:' + #requestDto.revieweeId")
+    })
     public ReviewResponseDto createReview(
             Long reviewerId,
             CreateReviewRequestDto requestDto
@@ -134,6 +144,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheNames.REVIEW_CACHE, key = "'reviews:' + #userId", unless = "#result == null")
     public List<ReviewResponseDto> getReviewsByUser(
             Long userId
     ) {

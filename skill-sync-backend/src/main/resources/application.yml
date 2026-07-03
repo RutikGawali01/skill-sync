@@ -9,6 +9,50 @@ spring:
             scope:
               - email
               - profile
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: ${REDIS_TIMEOUT:2000}
+
+app:
+  cache:
+    default-ttl: ${REDIS_CACHE_DEFAULT_TTL:600}
+    ttls:
+      profileCache: ${REDIS_CACHE_PROFILE_TTL:1800}
+      matchCache: ${REDIS_CACHE_MATCH_TTL:600}
+      skillCache: ${REDIS_CACHE_SKILL_TTL:300}
+      availabilityCache: ${REDIS_CACHE_AVAILABILITY_TTL:900}
+      dashboardCache: ${REDIS_CACHE_DASHBOARD_TTL:120}
+      notificationCache: ${REDIS_CACHE_NOTIFICATION_TTL:120}
+      reviewCache: ${REDIS_CACHE_REVIEW_TTL:1800}
+      trustCache: ${REDIS_CACHE_TRUST_TTL:1800}
+      sessionCache: ${REDIS_CACHE_SESSION_TTL:300}
+  rate-limit:
+    enabled: true
+    rules:
+      - path: "/api/auth/login"
+        limit: 5
+        window-seconds: 60
+      - path: "/api/auth/google"
+        limit: 5
+        window-seconds: 60
+      - path: "/api/auth/register"
+        limit: 5
+        window-seconds: 60
+      - path: "/api/users/search"
+        limit: 30
+        window-seconds: 60
+      - path: "/api/skills"
+        limit: 30
+        window-seconds: 60
+      - path: "/api/matches/**"
+        limit: 20
+        window-seconds: 60
+      - path: "/api/users/**"
+        limit: 30
+        window-seconds: 60
 
 match:
   weights:

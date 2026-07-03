@@ -30,6 +30,12 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponse.of(ex.getMessage(), "NOT_FOUND"));
     }
 
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<ErrorResponse> handleTooManyRequests(TooManyRequestsException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(ErrorResponse.of(ex.getMessage(), "TOO_MANY_REQUESTS"));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) {
 
@@ -38,4 +44,4 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ErrorResponse.of("Something went wrong", "INTERNAL_ERROR"));
     }
-}
+}

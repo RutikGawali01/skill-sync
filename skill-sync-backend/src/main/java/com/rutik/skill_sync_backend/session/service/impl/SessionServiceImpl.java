@@ -32,6 +32,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.context.ApplicationEventPublisher;
 import com.rutik.skill_sync_backend.session.event.SessionAcceptedEvent;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
+import com.rutik.skill_sync_backend.common.constants.CacheNames;
 import com.rutik.skill_sync_backend.session.event.SessionCompletedEvent;
 import com.rutik.skill_sync_backend.session.event.SessionCancelledEvent;
 
@@ -53,6 +57,7 @@ public class SessionServiceImpl implements SessionService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
+    @CacheEvict(value = CacheNames.SESSION_CACHE, allEntries = true)
     public SessionResponseDto createSession(
             Long requesterId,
             CreateSessionRequestDto dto
@@ -212,6 +217,12 @@ public class SessionServiceImpl implements SessionService {
     }
 
     @Override
+    @Caching(evict = {
+        @CacheEvict(value = CacheNames.SESSION_CACHE, key = "'session:' + #sessionId"),
+        @CacheEvict(value = CacheNames.SESSION_CACHE, allEntries = true),
+        @CacheEvict(value = CacheNames.DASHBOARD_CACHE, allEntries = true),
+        @CacheEvict(value = CacheNames.NOTIFICATION_CACHE, allEntries = true)
+    })
     public SessionResponseDto updateSessionStatus(
             Long userId,
             Long sessionId,
@@ -306,6 +317,12 @@ public class SessionServiceImpl implements SessionService {
     }
 
     @Override
+    @Caching(evict = {
+        @CacheEvict(value = CacheNames.SESSION_CACHE, key = "'session:' + #sessionId"),
+        @CacheEvict(value = CacheNames.SESSION_CACHE, allEntries = true),
+        @CacheEvict(value = CacheNames.DASHBOARD_CACHE, allEntries = true),
+        @CacheEvict(value = CacheNames.NOTIFICATION_CACHE, allEntries = true)
+    })
     public SessionResponseDto cancelSession(
             Long userId,
             Long sessionId,
@@ -382,6 +399,14 @@ public class SessionServiceImpl implements SessionService {
     }
 
     @Override
+    @Caching(evict = {
+        @CacheEvict(value = CacheNames.SESSION_CACHE, key = "'session:' + #sessionId"),
+        @CacheEvict(value = CacheNames.SESSION_CACHE, allEntries = true),
+        @CacheEvict(value = CacheNames.DASHBOARD_CACHE, allEntries = true),
+        @CacheEvict(value = CacheNames.NOTIFICATION_CACHE, allEntries = true),
+        @CacheEvict(value = CacheNames.REVIEW_CACHE, allEntries = true),
+        @CacheEvict(value = CacheNames.TRUST_CACHE, allEntries = true)
+    })
     public SessionResponseDto completeSession(
             Long userId,
             Long sessionId
@@ -460,6 +485,7 @@ public class SessionServiceImpl implements SessionService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheNames.SESSION_CACHE, key = "'sessions:' + #userId + ':' + (#status != null ? #status : '') + ':' + (#upcoming != null ? #upcoming : '') + ':' + #page + '-' + #size", unless = "#result == null")
     public Page<SessionResponseDto> getMySessions(
             Long userId,
             SessionStatus status,
@@ -534,6 +560,7 @@ public class SessionServiceImpl implements SessionService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheNames.SESSION_CACHE, key = "'session:' + #sessionId", unless = "#result == null")
     public SessionResponseDto getSessionById(
             Long userId,
             Long sessionId

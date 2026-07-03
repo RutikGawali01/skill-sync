@@ -1,6 +1,7 @@
 package com.rutik.skill_sync_backend.config;
 
 import com.rutik.skill_sync_backend.auth.filter.JwtAuthFilter;
+import com.rutik.skill_sync_backend.auth.filter.RateLimitFilter;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
@@ -26,6 +27,7 @@ import org.springframework.web.client.RestTemplate;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final RateLimitFilter rateLimitFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -50,7 +52,8 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
 
-                // 🔥 JWT FILTER
+                // 🔥 RATE LIMIT & JWT FILTERS
+                .addFilterBefore(rateLimitFilter, JwtAuthFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

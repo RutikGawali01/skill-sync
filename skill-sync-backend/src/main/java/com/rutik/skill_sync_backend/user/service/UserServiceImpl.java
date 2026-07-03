@@ -14,6 +14,10 @@ import com.rutik.skill_sync_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
+import com.rutik.skill_sync_backend.common.constants.CacheNames;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -40,6 +44,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Cacheable(value = CacheNames.PROFILE_CACHE, key = "'profile:' + #userId", unless = "#result == null")
     public UserProfileResponseDTO getProfileById(Long userId) {
 
         User user = userRepository.findById(userId)
@@ -81,6 +86,11 @@ public class UserServiceImpl implements UserService {
 //    }
 
     @Override
+    @Caching(evict = {
+        @CacheEvict(value = CacheNames.PROFILE_CACHE, key = "'profile:' + #userId"),
+        @CacheEvict(value = CacheNames.MATCH_CACHE, allEntries = true),
+        @CacheEvict(value = CacheNames.DASHBOARD_CACHE, key = "'dashboard:' + #userId")
+    })
     public UserProfileResponseDTO updateProfileById(Long userId, UpdateProfileRequestDTO request) {
 
         User user = userRepository.findById(userId)

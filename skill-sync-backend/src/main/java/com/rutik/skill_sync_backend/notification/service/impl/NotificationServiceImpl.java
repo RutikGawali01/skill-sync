@@ -16,10 +16,16 @@ import com.rutik.skill_sync_backend.user.entity.User;
 import com.rutik.skill_sync_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
+import com.rutik.skill_sync_backend.common.constants.CacheNames;
+import com.rutik.skill_sync_backend.notification.dto.response.NotificationSummaryDto;
+import com.rutik.skill_sync_backend.notification.service.NotificationCacheHelper;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
 
 /**
  * Implementation of NotificationService orchestrating templates, factories, repositories, and sockets.
@@ -35,6 +41,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationTemplateService templateService;
     private final NotificationMapper notificationMapper;
     private final NotificationPushService pushService;
+    private final NotificationCacheHelper notificationCacheHelper;
 
     @Override
     @Transactional
@@ -189,6 +196,7 @@ public class NotificationServiceImpl implements NotificationService {
             throw new ResourceNotFoundException("Notification not found or access denied");
         }
         pushService.pushUnreadCount(userId, notificationRepository.countUnreadByRecipientId(userId));
+        notificationCacheHelper.evictNotificationCache(userId);
     }
 
     @Override
@@ -197,6 +205,7 @@ public class NotificationServiceImpl implements NotificationService {
         log.info("✍️ Marking all notifications as read for user {}", userId);
         notificationRepository.markAllReadByRecipientId(userId);
         pushService.pushUnreadCount(userId, 0L);
+        notificationCacheHelper.evictNotificationCache(userId);
     }
 
     @Override
@@ -209,10 +218,12 @@ public class NotificationServiceImpl implements NotificationService {
             throw new ResourceNotFoundException("Notification not found or access denied");
         }
         pushService.pushUnreadCount(userId, notificationRepository.countUnreadByRecipientId(userId));
+        notificationCacheHelper.evictNotificationCache(userId);
     }
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheNames.NOTIFICATION_CACHE, key = "'notifications:' + #userId + ':' + #pageable.pageNumber + '-' + #pageable.pageSize", unless = "#result == null")
     public Page<NotificationResponseDto> getNotifications(Long userId, Pageable pageable) {
         log.info("🔍 Fetching notification history page for user {}", userId);
         return notificationRepository.findByRecipientIdAndIsDeletedFalseOrderByCreatedAtDesc(userId, pageable)
@@ -221,6 +232,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheNames.NOTIFICATION_CACHE, key = "'unread_notifications:' + #userId + ':' + #pageable.pageNumber + '-' + #pageable.pageSize", unless = "#result == null")
     public Page<NotificationResponseDto> getUnreadNotifications(Long userId, Pageable pageable) {
         log.info("🔍 Fetching unread notifications page for user {}", userId);
         return notificationRepository.findByRecipientIdAndIsReadFalseAndIsDeletedFalseOrderByCreatedAtDesc(userId, pageable)
@@ -229,6 +241,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheNames.NOTIFICATION_CACHE, key = "'unread_count:' + #userId")
     public long getUnreadCount(Long userId) {
         log.info("🔍 Querying unread count for user {}", userId);
         return notificationRepository.countUnreadByRecipientId(userId);
@@ -262,6 +275,23 @@ public class NotificationServiceImpl implements NotificationService {
             log.error("⚠️ Failed to push notification over WebSocket: {}", ex.getMessage());
         }
 
+        notificationCacheHelper.evictNotificationCache(recipientId);
         return responseDto;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = CacheNames.NOTIFICATION_CACHE, key = "'notification_summary:' + #userId", unless = "#result == null")
+    public NotificationSummaryDto getNotificationSummary(Long userId) {
+        log.info("🔍 Fetching notification summary for user {}", userId);
+        long unreadCount = getUnreadCount(userId);
+        
+        PageRequest pageRequest = PageRequest.of(0, 5);
+        List<NotificationResponseDto> recent = getNotifications(userId, pageRequest).getContent();
+        
+        return NotificationSummaryDto.builder()
+                .unreadCount(unreadCount)
+                .recentNotifications(recent)
+                .build();
     }
 }

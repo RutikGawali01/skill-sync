@@ -1,6 +1,7 @@
 package com.rutik.skill_sync_backend.notification.service;
 
 import com.rutik.skill_sync_backend.notification.dto.response.NotificationResponseDto;
+import com.rutik.skill_sync_backend.notification.dto.response.NotificationSummaryDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -43,4 +44,7 @@ public interface NotificationService {
     Page<NotificationResponseDto> getUnreadNotifications(Long userId, Pageable pageable);
 
     long getUnreadCount(Long userId);
+
+    NotificationSummaryDto getNotificationSummary(Long userId);
 }
+

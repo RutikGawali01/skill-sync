@@ -32,6 +32,8 @@ import com.rutik.skill_sync_backend.review.entity.UserTrustScore;
 import com.rutik.skill_sync_backend.review.repository.UserTrustScoreRepository;
 import com.rutik.skill_sync_backend.availability.entity.Availability;
 import com.rutik.skill_sync_backend.availability.repository.AvailabilityRepository;
+import org.springframework.cache.annotation.Cacheable;
+import com.rutik.skill_sync_backend.common.constants.CacheNames;
 
 @Service
 @RequiredArgsConstructor
@@ -224,6 +226,7 @@ public class MatchServiceImpl implements MatchService {
 
     @Override
     @Transactional
+    @Cacheable(value = CacheNames.MATCH_CACHE, key = "'mutual:' + #userId + ':' + #page + '-' + #size + '-' + (#search != null ? #search : '') + '-' + (#sortBy != null ? #sortBy : '') + '-' + (#sortDir != null ? #sortDir : '')", unless = "#result == null")
     public PageResponse<MatchResponseDTO> findMutualMatches(
             Long userId,
             int page,
@@ -363,6 +366,7 @@ public class MatchServiceImpl implements MatchService {
 
     @Override
     @Transactional
+    @Cacheable(value = CacheNames.MATCH_CACHE, key = "'recommended:' + #userId + ':' + #page + '-' + #size + '-' + (#search != null ? #search : '') + '-' + (#sortBy != null ? #sortBy : '') + '-' + (#sortDir != null ? #sortDir : '')", unless = "#result == null")
     public PageResponse<RecommendationDTO> getRecommendations(
             Long userId,
             int page,
@@ -377,6 +381,7 @@ public class MatchServiceImpl implements MatchService {
 
     @Override
     @Transactional
+    @Cacheable(value = CacheNames.MATCH_CACHE, key = "'ranked:' + #userId + ':' + #page + '-' + #size + '-' + (#search != null ? #search : '') + '-' + (#sortBy != null ? #sortBy : '') + '-' + (#sortDir != null ? #sortDir : '')", unless = "#result == null")
     public PageResponse<RecommendationDTO> getRankedMatches(
             Long userId,
             int page,

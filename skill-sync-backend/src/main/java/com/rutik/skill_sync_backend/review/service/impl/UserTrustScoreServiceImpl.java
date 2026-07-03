@@ -13,6 +13,10 @@ import com.rutik.skill_sync_backend.session.repository.SessionRepository;
 import com.rutik.skill_sync_backend.user.entity.User;
 import com.rutik.skill_sync_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
+import com.rutik.skill_sync_backend.common.constants.CacheNames;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +34,12 @@ public class UserTrustScoreServiceImpl
 
     @Override
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = CacheNames.TRUST_CACHE, key = "'trust:' + #user.id"),
+        @CacheEvict(value = CacheNames.PROFILE_CACHE, key = "'profile:' + #user.id"),
+        @CacheEvict(value = CacheNames.MATCH_CACHE, allEntries = true),
+        @CacheEvict(value = CacheNames.DASHBOARD_CACHE, allEntries = true)
+    })
     public void calculateTrustScore(User user) {
         UserTrustScore trustScore = trustScoreRepository.findByUser(user)
                 .orElseGet(() -> createNewTrustScore(user));
@@ -72,6 +82,12 @@ public class UserTrustScoreServiceImpl
 
     @Override
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = CacheNames.TRUST_CACHE, key = "'trust:' + #user.id"),
+        @CacheEvict(value = CacheNames.PROFILE_CACHE, key = "'profile:' + #user.id"),
+        @CacheEvict(value = CacheNames.MATCH_CACHE, allEntries = true),
+        @CacheEvict(value = CacheNames.DASHBOARD_CACHE, allEntries = true)
+    })
     public void updateTrustMetrics(User user, Review review) {
 
         UserTrustScore trustScore =
@@ -130,6 +146,7 @@ public class UserTrustScoreServiceImpl
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheNames.TRUST_CACHE, key = "'trust:' + #userId", unless = "#result == null")
     public UserTrustScoreResponseDto getUserTrustScore(
             Long userId
     ) {
