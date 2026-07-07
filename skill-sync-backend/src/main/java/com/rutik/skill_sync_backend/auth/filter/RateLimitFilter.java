@@ -104,7 +104,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 );
 
                 if (result == null || result == 0) {
-                    log.warn("🚨 RATE LIMIT VIOLATION - Client IP: '{}', Path: '{}' matches Rule: '{}', Count exceeded limit of {} requests per {}s",
+                    log.warn("RATE LIMIT VIOLATION - Client IP: '{}', Path: '{}' matches Rule: '{}', Count exceeded limit of {} requests per {}s",
                             clientIp, uri, rule.getPath(), limit, rule.getWindowSeconds());
                     
                     resolver.resolveException(
@@ -117,7 +117,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 }
             } catch (Exception e) {
                 // Fail-safe: if Redis is unavailable, let the request proceed to avoid breaking APIs
-                log.error("⚠️ Redis rate limiting check failed. Bypassing check.", e);
+                log.error(" Redis rate limiting check failed. Bypassing check.", e);
             }
         }
 

@@ -37,3 +37,14 @@ export const updateProfile = async (data) => {
   const response = await api.put('/users', data);
   return response.data.data;
 };
+
+/**
+ * Fetch a public user's profile by userId.
+ * Backend: GET /api/users/{userId}
+ * @param {string|number} userId
+ * @returns {Promise<UserProfileResponseDTO>}
+ */
+export const getUserProfile = async (userId) => {
+  const response = await api.get(`/users/${userId}`);
+  return response.data.data;
+};

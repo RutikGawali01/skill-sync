@@ -135,6 +135,6 @@ public class DataSeeder implements CommandLineRunner {
 
         skillRepository.saveAll(skills);
 
-        System.out.println("✅ Skills seeded successfully");
+        System.out.println(" Skills seeded successfully");
     }
 }

@@ -103,4 +103,26 @@ public class UserSkillController {
                 )
         );
     }
+
+    // ✅ Get Another User's Skills
+    @GetMapping("/user/{userId}")
+    public ApiResponse<List<UserSkillResponseDTO>> getUserSkills(
+            @PathVariable Long userId
+    ) {
+        return ApiResponse.success(
+                "User skills fetched",
+                skillService.getUserSkills(userId)
+        );
+    }
+
+    // ✅ Get Another User's Verified Badges
+    @GetMapping("/user/{userId}/verified-badges")
+    public ApiResponse<List<VerifiedBadgeResponseDto>> getVerifiedBadgesByUserId(
+            @PathVariable Long userId
+    ) {
+        return ApiResponse.success(
+                "Verified badges fetched successfully",
+                skillService.getVerifiedBadges(userId)
+        );
+    }
 }

@@ -6,6 +6,7 @@ import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
 import SkillsPage from '../pages/skills/SkillsPage';
 import ProfilePage from '../pages/ProfilePage';
+import PublicProfilePage from '../pages/PublicProfilePage';
 import VerificationTestPage from '../pages/verification/VerificationTestPage';
 import VerificationResultPage from '../pages/verification/VerificationResultPage';
 import AvailabilityPage from '../pages/availability/AvailabilityPage';
@@ -46,6 +47,7 @@ const AppRoutes = () => (
           <Route path="/matches"       element={<Placeholder label="Matches Page" />} />
           <Route path="/chat"          element={<ChatPage />} />
           <Route path="/profile"       element={<ProfilePage />} />
+          <Route path="/users/:userId" element={<PublicProfilePage />} />
           <Route path="/availability"  element={<AvailabilityPage />} />
           <Route path="/sessions"       element={<SessionDashboardPage />} />
           <Route path="/sessions/:sessionId" element={<SessionDetailsPage />} />

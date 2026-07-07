@@ -1,14 +1,13 @@
-const TOKEN_KEY = 'token';
+let inMemoryToken = null;
 
 /**
  * tokenService — central abstraction for access token storage.
- * Currently backed by localStorage (acceptable for MVP).
- * To migrate to in-memory/Redux storage: only change this file.
+ * Migrated to secure in-memory variable to protect against XSS.
  */
 export const tokenService = {
-  get:   ()      => localStorage.getItem(TOKEN_KEY),
-  set:   (token) => localStorage.setItem(TOKEN_KEY, token),
-  clear: ()      => localStorage.removeItem(TOKEN_KEY),
+  get:   ()      => inMemoryToken,
+  set:   (token) => { inMemoryToken = token; },
+  clear: ()      => { inMemoryToken = null; },
 };
 
 // Named aliases for backward compatibility

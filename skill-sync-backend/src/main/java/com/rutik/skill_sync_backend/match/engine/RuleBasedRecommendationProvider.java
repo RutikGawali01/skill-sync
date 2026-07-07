@@ -85,7 +85,7 @@ public class RuleBasedRecommendationProvider implements RecommendationProvider {
 
         if (myWants.isEmpty()) {
             log.warn("User has no wanted skills. userId={}", userId);
-            return PageResponse.from(List.of(), page, size, 0);
+            return PageResponse.from(new java.util.ArrayList<>(), page, size, 0);
         }
 
         List<Long> wantSkillIds = myWants.stream()
@@ -108,7 +108,7 @@ public class RuleBasedRecommendationProvider implements RecommendationProvider {
         log.info("Candidate discovery completed: RawCount={}, EligibleCount={}", rawCandidates.size(), eligibleCandidates.size());
 
         if (eligibleCandidates.isEmpty()) {
-            return PageResponse.from(List.of(), page, size, 0);
+            return PageResponse.from(new java.util.ArrayList<>(), page, size, 0);
         }
 
         stopWatch.start("BulkFetchAuxiliaryData");
@@ -197,9 +197,9 @@ public class RuleBasedRecommendationProvider implements RecommendationProvider {
         int totalElements = sortedRecommendations.size();
         int start = page * size;
         int end = Math.min(start + size, totalElements);
-        List<RecommendationDTO> paginatedList = List.of();
+        List<RecommendationDTO> paginatedList = new java.util.ArrayList<>();
         if (start < totalElements) {
-            paginatedList = sortedRecommendations.subList(start, end);
+            paginatedList = new java.util.ArrayList<>(sortedRecommendations.subList(start, end));
         }
 
         log.info("Matching completed in {} ms. Total Recommendations={}", stopWatch.getTotalTimeMillis(), ranked.size());

@@ -24,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import com.rutik.skill_sync_backend.common.dto.PageResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -486,7 +487,7 @@ public class SessionServiceImpl implements SessionService {
     @Override
     @Transactional(readOnly = true)
     @Cacheable(value = CacheNames.SESSION_CACHE, key = "'sessions:' + #userId + ':' + (#status != null ? #status : '') + ':' + (#upcoming != null ? #upcoming : '') + ':' + #page + '-' + #size", unless = "#result == null")
-    public Page<SessionResponseDto> getMySessions(
+    public PageResponse<SessionResponseDto> getMySessions(
             Long userId,
             SessionStatus status,
             Boolean upcoming,
@@ -528,7 +529,8 @@ public class SessionServiceImpl implements SessionService {
         // MAP RESPONSE
         // ==========================================
 
-        return sessions.map(sessionMapper::toDto);
+        Page<SessionResponseDto> dtoPage = sessions.map(sessionMapper::toDto);
+        return PageResponse.from(dtoPage);
     }
 
 

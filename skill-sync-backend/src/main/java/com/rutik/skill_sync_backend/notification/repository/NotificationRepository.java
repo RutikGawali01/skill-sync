@@ -11,22 +11,16 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-/**
- * Data-access layer for Notification using derived query methods and minimal JPQL.
- */
+
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
-    // Derived Query: Paginated notification history (all non-deleted)
     Page<Notification> findByRecipientIdAndIsDeletedFalseOrderByCreatedAtDesc(Long recipientId, Pageable pageable);
 
-    // Derived Query: Paginated unread notifications
     Page<Notification> findByRecipientIdAndIsReadFalseAndIsDeletedFalseOrderByCreatedAtDesc(Long recipientId, Pageable pageable);
 
-    // Derived Query: Find single notification with recipient verification
     Optional<Notification> findByIdAndRecipientIdAndIsDeletedFalse(Long id, Long recipientId);
 
-    // Allowed JPQL: count unread
     @Query("""
             SELECT COUNT(n) FROM Notification n
             WHERE n.recipient.id = :recipientId
@@ -35,7 +29,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
             """)
     long countUnreadByRecipientId(@Param("recipientId") Long recipientId);
 
-    // Allowed JPQL: bulk update (single)
     @Modifying
     @Query("""
             UPDATE Notification n
@@ -46,7 +39,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
             """)
     int markAsRead(@Param("id") Long id, @Param("recipientId") Long recipientId);
 
-    // Allowed JPQL: bulk update (all)
     @Modifying
     @Query("""
             UPDATE Notification n

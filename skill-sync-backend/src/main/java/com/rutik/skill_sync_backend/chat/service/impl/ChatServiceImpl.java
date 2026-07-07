@@ -40,9 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Service implementation for Chat messaging operations.
- */
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -259,10 +257,7 @@ public class ChatServiceImpl implements ChatService {
                 .sum();
     }
 
-    /**
-     * Listens for UserOnlineEvent. When a user connects (goes online), retrieve all their conversations,
-     * find any SENT messages sent by others, update them to DELIVERED, and broadcast updates to their senders.
-     */
+
     @EventListener
     @Transactional
     public void handleUserOnline(UserOnlineEvent event) {
@@ -303,7 +298,6 @@ public class ChatServiceImpl implements ChatService {
         }
     }
 
-    // ── Helper Methods with Retry for Optimistic Locking ──
 
     private void incrementUnreadCountWithRetry(Long participantId) {
         int maxRetries = 3;

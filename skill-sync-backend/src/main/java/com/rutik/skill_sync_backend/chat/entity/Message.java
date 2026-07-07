@@ -9,9 +9,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-/**
- * JPA entity representing a Message inside a Conversation.
- */
+
 @Entity
 @Table(
     name = "messages",

@@ -111,7 +111,7 @@ const PreviewSkeleton = ({ isDark }) => (
 
 // ── Empty State ───────────────────────────────────────────────────────────────
 
-const EmptyState = ({ isDark, onManage }) => (
+const EmptyState = ({ isDark, onManage, readOnly = false }) => (
   <Center py="lg">
     <Stack align="center" gap="sm">
       <Box
@@ -129,42 +129,47 @@ const EmptyState = ({ isDark, onManage }) => (
         <IconCalendarOff size={28} color={isDark ? '#a78bfa' : '#8b5cf6'} />
       </Box>
       <Text fw={600} size="sm" style={{ color: isDark ? '#e2e8f0' : '#1e293b' }}>
-        No availability has been added yet.
+        {readOnly ? "No availability specified." : "No availability has been added yet."}
       </Text>
       <Text size="xs" ta="center" style={{ color: isDark ? '#94a3b8' : '#64748b', maxWidth: 320 }}>
-        Add your available days and time slots so other users can schedule sessions with you.
+        {readOnly ? "This user hasn't added availability slots yet." : "Add your available days and time slots so other users can schedule sessions with you."}
       </Text>
-      <Button
-        onClick={onManage}
-        variant="light"
-        color="violet"
-        radius="xl"
-        size="sm"
-        rightSection={<IconArrowRight size={14} />}
-        mt={4}
-      >
-        Add Availability
-      </Button>
+      {!readOnly && (
+        <Button
+          onClick={onManage}
+          variant="light"
+          color="violet"
+          radius="xl"
+          size="sm"
+          rightSection={<IconArrowRight size={14} />}
+          mt={4}
+        >
+          Add Availability
+        </Button>
+      )}
     </Stack>
   </Center>
 );
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
-const AvailabilityPreviewCard = ({ isDark }) => {
+const AvailabilityPreviewCard = ({ isDark, slots: propsSlots, loading: propsLoading, readOnly = false }) => {
   const dispatch  = useDispatch();
   const navigate  = useNavigate();
-  const slots     = useSelector(selectAvailabilitySlots);
-  const loading   = useSelector(selectAvailabilityLoading);
+  const storeSlots = useSelector(selectAvailabilitySlots);
+  const storeLoading = useSelector(selectAvailabilityLoading);
   const loaded    = useSelector(selectAvailabilityLoaded);
   const userId    = useSelector((state) => state.auth.user?.id);
 
-  // Fetch availability if not already loaded (reuses global state)
+  const slots     = propsSlots !== undefined ? propsSlots : storeSlots;
+  const loading   = propsLoading !== undefined ? propsLoading : storeLoading;
+
+  // Fetch availability if not already loaded (uses global state)
   useEffect(() => {
-    if (userId && !loaded && !loading) {
+    if (!readOnly && userId && !loaded && !loading) {
       dispatch(fetchAvailability(userId));
     }
-  }, [dispatch, userId, loaded, loading]);
+  }, [dispatch, userId, loaded, loading, readOnly]);
 
   const handleManage = () => navigate('/availability');
 
@@ -262,7 +267,7 @@ const AvailabilityPreviewCard = ({ isDark }) => {
 
         {/* ── Content ── */}
         {slots.length === 0 ? (
-          <EmptyState isDark={isDark} onManage={handleManage} />
+          <EmptyState isDark={isDark} onManage={handleManage} readOnly={readOnly} />
         ) : (
           <>
             {/* Active days summary */}
@@ -332,26 +337,28 @@ const AvailabilityPreviewCard = ({ isDark }) => {
             </Stack>
 
             {/* CTA Button */}
-            <Button
-              id="manage-availability-btn"
-              onClick={handleManage}
-              variant="light"
-              color="violet"
-              radius="xl"
-              size="sm"
-              fullWidth
-              rightSection={<IconArrowRight size={14} />}
-              styles={{
-                root: {
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    transform: 'translateY(-1px)',
+            {!readOnly && (
+              <Button
+                id="manage-availability-btn"
+                onClick={handleManage}
+                variant="light"
+                color="violet"
+                radius="xl"
+                size="sm"
+                fullWidth
+                rightSection={<IconArrowRight size={14} />}
+                styles={{
+                  root: {
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      transform: 'translateY(-1px)',
+                    },
                   },
-                },
-              }}
-            >
-              Manage Availability
-            </Button>
+                }}
+              >
+                Manage Availability
+              </Button>
+            )}
           </>
         )}
       </Stack>

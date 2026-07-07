@@ -95,9 +95,12 @@ const VerifiedSkillBadge = ({ skill, isDark }) => {
   );
 };
 
-const VerifiedSkillsSection = ({ isDark }) => {
-  const verifiedSkills = useSelector(selectVerifiedBadges);
-  const loading = useSelector(selectBadgesLoading);
+const VerifiedSkillsSection = ({ isDark, verifiedSkills: propsBadges, loading: propsLoading }) => {
+  const storeBadges = useSelector(selectVerifiedBadges);
+  const storeLoading = useSelector(selectBadgesLoading);
+
+  const verifiedSkills = propsBadges !== undefined ? propsBadges : storeBadges;
+  const loading = propsLoading !== undefined ? propsLoading : storeLoading;
 
   const dividerLabelColor = isDark ? '#475569' : '#94a3b8';
   const dividerBorderColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)';

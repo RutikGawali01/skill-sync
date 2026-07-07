@@ -16,11 +16,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Custom Handshake Handler mapping authenticated users to STOMP principals.
- * This assigns the user ID string as the Principal name, which allows target delivery
- * through SimpMessagingTemplate.convertAndSendToUser(userIdString, destination, payload).
- */
 @Component
 @Slf4j
 public class PrincipalHandshakeHandler extends DefaultHandshakeHandler {
@@ -33,7 +28,7 @@ public class PrincipalHandshakeHandler extends DefaultHandshakeHandler {
         User user = (User) attributes.get("ws_user");
         if (user != null) {
             String principalName = user.getId().toString();
-            log.info("👤 WebSocket session mapped to principal name (userId): {}", principalName);
+            log.info(" WebSocket session mapped to principal name (userId): {}", principalName);
             
             // Extract the user's role into a GrantedAuthority
             List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
@@ -43,7 +38,7 @@ public class PrincipalHandshakeHandler extends DefaultHandshakeHandler {
             return new UsernamePasswordAuthenticationToken(principalName, null, authorities);
         }
 
-        log.warn("⚠️ No user found in session attributes, WebSocket session will remain anonymous");
+        log.warn(" No user found in session attributes, WebSocket session will remain anonymous");
         return null;
     }
 }

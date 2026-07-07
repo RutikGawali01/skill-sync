@@ -17,7 +17,7 @@ public class NotificationCacheHelperImpl implements NotificationCacheHelper {
 
     @Override
     public void evictNotificationCache(Long userId) {
-        log.info("🧹 Programmatic Cache Eviction: Clearing notification and dashboard caches for userId = {}", userId);
+        log.info(" Programmatic Cache Eviction: Clearing notification and dashboard caches for userId = {}", userId);
         
         Cache notificationCache = cacheManager.getCache(CacheNames.NOTIFICATION_CACHE);
         if (notificationCache != null) {
@@ -28,13 +28,13 @@ public class NotificationCacheHelperImpl implements NotificationCacheHelper {
             // To ensure page variations or unread lists (which are paged and dynamically key-generated) 
             // are cleared correctly, we clear the entire notificationCache.
             notificationCache.clear();
-            log.info("🧹 Cleared notificationCache");
+            log.info(" Cleared notificationCache");
         }
 
         Cache dashboardCache = cacheManager.getCache(CacheNames.DASHBOARD_CACHE);
         if (dashboardCache != null) {
             dashboardCache.evict("dashboard:" + userId);
-            log.info("🧹 Evicted dashboardCache for key: dashboard:{}", userId);
+            log.info(" Evicted dashboardCache for key: dashboard:{}", userId);
         }
     }
 }

@@ -14,11 +14,7 @@ import org.springframework.web.socket.server.HandshakeInterceptor;
 
 import java.util.Map;
 
-/**
- * Handshake interceptor for Chat WebSocket connections.
- * Extracts JWT from query param `?token=...`, validates it,
- * and sets the authenticated user in the session attributes.
- */
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -38,35 +34,35 @@ public class ChatHandshakeInterceptor implements HandshakeInterceptor {
             String token = servletRequest.getServletRequest().getParameter("token");
 
             if (token == null || token.isBlank()) {
-                log.warn("❌ Chat WebSocket Handshake blocked: Missing 'token' query parameter");
+                log.warn(" Chat WebSocket Handshake blocked: Missing 'token' query parameter");
                 return false;
             }
 
             try {
                 Long userId = jwtService.extractUserId(token);
                 if (userId == null) {
-                    log.warn("❌ Chat WebSocket Handshake blocked: Token does not contain userId");
+                    log.warn(" Chat WebSocket Handshake blocked: Token does not contain userId");
                     return false;
                 }
 
                 User user = userRepository.findByIdAndIsActiveTrue(userId).orElse(null);
                 if (user == null) {
-                    log.warn("❌ Chat WebSocket Handshake blocked: User {} not found or inactive", userId);
+                    log.warn(" Chat WebSocket Handshake blocked: User {} not found or inactive", userId);
                     return false;
                 }
 
                 if (!jwtService.isValid(token, user)) {
-                    log.warn("❌ Chat WebSocket Handshake blocked: Invalid token for user {}", userId);
+                    log.warn(" Chat WebSocket Handshake blocked: Invalid token for user {}", userId);
                     return false;
                 }
 
                 // Authentication succeeded. Save user in socket session attributes
                 attributes.put("ws_chat_user", user);
-                log.info("✅ Chat WebSocket Handshake authenticated successfully for user: {}", user.getEmail());
+                log.info(" Chat WebSocket Handshake authenticated successfully for user: {}", user.getEmail());
                 return true;
 
             } catch (Exception ex) {
-                log.error("❌ Chat WebSocket Handshake error validating token: {}", ex.getMessage());
+                log.error(" Chat WebSocket Handshake error validating token: {}", ex.getMessage());
                 return false;
             }
         }

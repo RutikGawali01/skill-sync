@@ -115,20 +115,20 @@ const ConfirmDeleteOverlay = ({ skill, onConfirm, onCancel, isRemoving, isDark }
 );
 
 // ── Verification Status Widget (OFFER skills only) ────────────────────────────
-const VerificationWidget = ({ skill, isDark, onStartTest }) => {
+const VerificationWidget = ({ skill, isDark, onStartTest, readOnly = false }) => {
   const status = skill.verificationStatus; // 'VERIFIED' | 'FAILED' | 'PENDING' | undefined
   const score  = skill.verificationScore;
 
   const [now, setNow] = useState(new Date().getTime());
 
   useEffect(() => {
-    if (status === 'COOLDOWN' || status === 'FAILED') {
+    if (!readOnly && (status === 'COOLDOWN' || status === 'FAILED')) {
       const interval = setInterval(() => {
         setNow(new Date().getTime());
       }, 1000);
       return () => clearInterval(interval);
     }
-  }, [status]);
+  }, [status, readOnly]);
 
   if (status === 'VERIFIED') {
     return (
@@ -150,6 +150,8 @@ const VerificationWidget = ({ skill, isDark, onStartTest }) => {
       </Group>
     );
   }
+
+  if (readOnly) return null;
 
   if ((status === 'COOLDOWN' || status === 'FAILED') && skill.retryAvailableAt) {
     const retryAt = new Date(skill.retryAvailableAt).getTime();
@@ -214,7 +216,7 @@ const VerificationWidget = ({ skill, isDark, onStartTest }) => {
 };
 
 // ── Skill Card ────────────────────────────────────────────────────────────────
-const SkillCard = ({ skill, onRemove, isRemoving, isDark, onStartTest }) => {
+const SkillCard = ({ skill, onRemove, isRemoving, isDark, onStartTest, readOnly = false }) => {
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const levelKey    = skill.level    ?? skill.proficiencyLevel;
@@ -299,19 +301,21 @@ const SkillCard = ({ skill, onRemove, isRemoving, isDark, onStartTest }) => {
           </Text>
         </Group>
 
-        <Tooltip label="Remove" position="left" withArrow>
-          <ActionIcon
-            id={`remove-skill-${skill.skillId}-${typeKey}`}
-            variant="subtle"
-            color="red"
-            size="xs"
-            radius="md"
-            onClick={() => setConfirmOpen(true)}
-            style={{ flexShrink: 0, opacity: 0.7 }}
-          >
-            <IconTrash size={12} />
-          </ActionIcon>
-        </Tooltip>
+        {!readOnly && (
+          <Tooltip label="Remove" position="left" withArrow>
+            <ActionIcon
+              id={`remove-skill-${skill.skillId}-${typeKey}`}
+              variant="subtle"
+              color="red"
+              size="xs"
+              radius="md"
+              onClick={() => setConfirmOpen(true)}
+              style={{ flexShrink: 0, opacity: 0.7 }}
+            >
+              <IconTrash size={12} />
+            </ActionIcon>
+          </Tooltip>
+        )}
       </Group>
 
       {/* Row 2: badges */}
@@ -338,7 +342,7 @@ const SkillCard = ({ skill, onRemove, isRemoving, isDark, onStartTest }) => {
       {/* Verification widget — OFFER skills only */}
       {isOffer && (
         <Box pl={8}>
-          <VerificationWidget skill={skill} isDark={isDark} onStartTest={onStartTest} />
+          <VerificationWidget skill={skill} isDark={isDark} onStartTest={onStartTest} readOnly={readOnly} />
         </Box>
       )}
 
@@ -396,13 +400,20 @@ export const SkillsSectionSkeleton = () => (
 );
 
 // ── Empty state ───────────────────────────────────────────────────────────────
-const EmptyState = ({ isDark, onAdd, tab }) => {
+const EmptyState = ({ isDark, onAdd, tab, readOnly = false }) => {
   const message =
     tab === 'offer'
       ? 'No skills offered yet. Add the skills you can teach or share.'
       : tab === 'want'
         ? 'No learning goals yet. Add what you want to learn from others.'
         : 'No skills added yet. Add your first skill to start matching with learners and mentors.';
+
+  const publicMessage =
+    tab === 'offer'
+      ? 'No skills offered by this user yet.'
+      : tab === 'want'
+        ? 'No learning goals specified by this user yet.'
+        : 'No skills added by this user yet.';
 
   return (
     <Box
@@ -416,9 +427,9 @@ const EmptyState = ({ isDark, onAdd, tab }) => {
     >
       <IconInbox size={32} color={isDark ? '#334155' : '#cbd5e1'} style={{ marginBottom: 10 }} />
       <Text size="sm" mb="md" style={{ color: isDark ? '#475569' : '#94a3b8', maxWidth: 340, margin: '0 auto 1rem' }}>
-        {message}
+        {readOnly ? publicMessage : message}
       </Text>
-      {tab === 'all' && (
+      {!readOnly && tab === 'all' && (
         <Button
           id="empty-state-add-skill-btn"
           size="xs"
@@ -436,18 +447,21 @@ const EmptyState = ({ isDark, onAdd, tab }) => {
 };
 
 // ── Main Component ────────────────────────────────────────────────────────────
-const SkillsSection = ({ isDark }) => {
+const SkillsSection = ({ isDark, skills: propsSkills, loading: propsLoading, readOnly = false }) => {
   const dispatch        = useDispatch();
   const navigate        = useNavigate();
   const availableSkills = useSelector(selectAvailableSkills);
-  const userSkills      = useSelector(selectUserSkills);
-  const loading         = useSelector(selectSkillsLoading);
+  const storeSkills     = useSelector(selectUserSkills);
+  const storeLoading    = useSelector(selectSkillsLoading);
   const catalogLoading  = useSelector(selectCatalogLoading);
   const adding          = useSelector(selectSkillsAdding);
   const removing        = useSelector(selectSkillsRemoving);
   const storeError      = useSelector(selectSkillsError);
   const generating      = useSelector(selectGenerating);
   const verifyError     = useSelector(selectVerificationError);
+
+  const userSkills      = propsSkills !== undefined ? propsSkills : storeSkills;
+  const loading         = propsLoading !== undefined ? propsLoading : storeLoading;
 
   const [activeTab, setActiveTab] = useState('all');
   const [modalOpened, { open: openModal, close: closeModal }] = useDisclosure(false);
@@ -456,9 +470,11 @@ const SkillsSection = ({ isDark }) => {
 
   // ── Fetch on mount ──────────────────────────────────────────────────────────
   useEffect(() => {
-    dispatch(fetchUserSkills());
-    dispatch(fetchAvailableSkills());
-  }, [dispatch]);
+    if (!readOnly) {
+      dispatch(fetchUserSkills());
+      dispatch(fetchAvailableSkills());
+    }
+  }, [dispatch, readOnly]);
 
   // ── Surface verification errors ─────────────────────────────────────────────
   useEffect(() => {
@@ -557,7 +573,7 @@ const SkillsSection = ({ isDark }) => {
               <Text fw={700} size="md" style={{ color: titleColor }}>Skills</Text>
             </Group>
             <Text size="xs" style={{ color: subColor, maxWidth: 380 }}>
-              Manage the skills you can teach and the skills you want to learn.
+              {readOnly ? "The skills this user can teach and the skills they want to learn." : "Manage the skills you can teach and the skills you want to learn."}
             </Text>
 
             {/* Stat pills */}
@@ -571,18 +587,20 @@ const SkillsSection = ({ isDark }) => {
           </Stack>
 
           {/* Right: Add button */}
-          <Button
-            id="open-add-skill-modal-btn"
-            leftSection={<IconPlus size={14} />}
-            onClick={openModal}
-            variant="gradient"
-            gradient={{ from: '#7c3aed', to: '#4f46e5', deg: 135 }}
-            radius="md"
-            size="sm"
-            style={{ boxShadow: '0 4px 14px rgba(124,58,237,0.3)', fontWeight: 600, flexShrink: 0 }}
-          >
-            Add Skill
-          </Button>
+          {!readOnly && (
+            <Button
+              id="open-add-skill-modal-btn"
+              leftSection={<IconPlus size={14} />}
+              onClick={openModal}
+              variant="gradient"
+              gradient={{ from: '#7c3aed', to: '#4f46e5', deg: 135 }}
+              radius="md"
+              size="sm"
+              style={{ boxShadow: '0 4px 14px rgba(124,58,237,0.3)', fontWeight: 600, flexShrink: 0 }}
+            >
+              Add Skill
+            </Button>
+          )}
         </Group>
 
         {/* ── Tabs ── */}
@@ -608,7 +626,7 @@ const SkillsSection = ({ isDark }) => {
             {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} height={90} radius={12} />)}
           </SimpleGrid>
         ) : filteredSkills.length === 0 ? (
-          <EmptyState isDark={isDark} onAdd={openModal} tab={activeTab} />
+          <EmptyState isDark={isDark} onAdd={openModal} tab={activeTab} readOnly={readOnly} />
         ) : (
           <SimpleGrid cols={{ base: 1, xs: 2, md: 3 }} spacing="sm">
             {filteredSkills.map((skill) => (
@@ -619,6 +637,7 @@ const SkillsSection = ({ isDark }) => {
                 isRemoving={removing === skill.skillId}
                 onRemove={handleRemoveSkill}
                 onStartTest={handleOpenVerifyModal}
+                readOnly={readOnly}
               />
             ))}
           </SimpleGrid>

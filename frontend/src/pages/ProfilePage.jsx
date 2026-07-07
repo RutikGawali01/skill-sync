@@ -20,12 +20,13 @@ import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import {
   Container, Stack, Text, Box, Title, Group, Divider,
-  ActionIcon, Tooltip, Transition,
+  Transition,
 } from '@mantine/core';
 import {
-  IconUser, IconSun, IconMoon,
+  IconUser,
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
+
 
 import { useTheme } from '../context/ThemeContext';
 import useProfile from '../hooks/useProfile';
@@ -45,7 +46,7 @@ import { fetchVerifiedBadges } from '../redux/verificationSlice';
 // ── Page ──────────────────────────────────────────────────────────────────────
 const ProfilePage = () => {
   const dispatch = useDispatch();
-  const { isDark, toggleTheme } = useTheme();
+  const { isDark } = useTheme();
 
   const {
     profile,
@@ -157,20 +158,7 @@ const ProfilePage = () => {
               </Title>
             </Group>
 
-            {/* Theme Toggle */}
-            <Tooltip label={isDark ? 'Switch to light mode' : 'Switch to dark mode'} position="left">
-              <ActionIcon
-                id="theme-toggle-btn"
-                onClick={toggleTheme}
-                variant="light"
-                color="violet"
-                size="lg"
-                radius="md"
-                aria-label="Toggle theme"
-              >
-                {isDark ? <IconSun size={18} /> : <IconMoon size={18} />}
-              </ActionIcon>
-            </Tooltip>
+
           </Group>
 
           {/* ── API Error State ── */}

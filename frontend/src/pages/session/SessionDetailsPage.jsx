@@ -146,6 +146,10 @@ const SessionDetailsPage = () => {
 
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
 
+  const hasReviewed = sessionReviews.some(
+    (r) => r.reviewerId === currentUserId || r.reviewer?.id === currentUserId
+  );
+
   // Fetch on mount
   useEffect(() => {
     if (sessionId) {
@@ -361,7 +365,7 @@ const SessionDetailsPage = () => {
 
                 {/* ── Actions ── */}
                 <div className="flex items-center justify-end gap-3 pt-2">
-                  {session.status === 'COMPLETED' && (
+                  {session.status === 'COMPLETED' && !hasReviewed && (
                     <Button
                       id="session-leave-review-btn"
                       leftSection={<IconStar size={16} />}

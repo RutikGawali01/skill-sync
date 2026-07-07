@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.rutik.skill_sync_backend.common.dto.PageResponse;
 import org.springframework.data.domain.Page;
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -189,10 +190,10 @@ public class SkillServiceImpl implements SkillService {
             Long userId
     ) {
 
-        return userSkillRepository.findByUserId(userId)
+        return new ArrayList<>(userSkillRepository.findByUserId(userId)
                 .stream()
                 .map(UserSkillMapper::mapToDto)
-                .toList();
+                .toList());
     }
 
 
@@ -214,11 +215,11 @@ public class SkillServiceImpl implements SkillService {
                 userId
         );
 
-        return userSkillRepository
+        return new ArrayList<>(userSkillRepository
                 .findByUserIdAndType(userId, type)
                 .stream()
                 .map(this::mapToDTO)
-                .toList();
+                .toList());
     }
 
     /**
@@ -248,13 +249,13 @@ public class SkillServiceImpl implements SkillService {
                     .findByNameContainingIgnoreCase(keyword);
         }
 
-        return skills.stream()
+        return new ArrayList<>(skills.stream()
                 .map(skill -> SkillResponseDTO.builder()
                         .id(skill.getId())
                         .name(skill.getName())
                         .category(skill.getCategory())
                         .build())
-                .toList();
+                .toList());
     }
 
     /**
@@ -395,7 +396,7 @@ public class SkillServiceImpl implements SkillService {
 
     private List<String> getWantedSkills(User user) {
 
-        return user.getUserSkills().stream()
+        return new ArrayList<>(user.getUserSkills().stream()
 
                 // Only WANT skills
                 .filter(skill -> skill.getType() == SkillType.WANT)
@@ -412,23 +413,23 @@ public class SkillServiceImpl implements SkillService {
                 // Limit for clean UI
                 .limit(3)
 
-                .toList();
+                .toList());
     }
 
     private List<AvailabilityResponseDTO> getProviderAvailability(
             User user
     ) {
         if (user.getAvailabilitySlots() == null) {
-            return List.of();
+            return new ArrayList<>();
         }
-        return user.getAvailabilitySlots().stream()
+        return new ArrayList<>(user.getAvailabilitySlots().stream()
                 .map(slot -> AvailabilityResponseDTO.builder()
                         .id(slot.getId())
                         .day(slot.getDay())
                         .startTime(slot.getStartTime())
                         .endTime(slot.getEndTime())
                         .build())
-                .toList();
+                .toList());
     }
 
     @Override
@@ -442,7 +443,7 @@ public class SkillServiceImpl implements SkillService {
                 userSkillRepository
                         .findByUserIdAndIsVerifiedTrue(userId);
 
-        return verifiedSkills.stream()
+        return new ArrayList<>(verifiedSkills.stream()
                 .map(skill -> VerifiedBadgeResponseDto.builder()
 
                         .skillId(skill.getSkill().getId())
@@ -459,6 +460,6 @@ public class SkillServiceImpl implements SkillService {
 
                         .build())
 
-                .toList();
+                .toList());
     }
 }

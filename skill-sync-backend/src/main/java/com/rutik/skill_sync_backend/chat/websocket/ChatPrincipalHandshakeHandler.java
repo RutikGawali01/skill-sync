@@ -14,11 +14,7 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Custom Handshake Handler mapping authenticated chat users to STOMP principals.
- * This assigns the user ID string as the Principal name, which allows target delivery
- * through SimpMessagingTemplate.convertAndSendToUser(userIdString, destination, payload).
- */
+
 @Component
 @Slf4j
 public class ChatPrincipalHandshakeHandler extends DefaultHandshakeHandler {
@@ -31,7 +27,7 @@ public class ChatPrincipalHandshakeHandler extends DefaultHandshakeHandler {
         User user = (User) attributes.get("ws_chat_user");
         if (user != null) {
             String principalName = user.getId().toString();
-            log.info("👤 Chat WebSocket session mapped to principal name (userId): {}", principalName);
+            log.info(" Chat WebSocket session mapped to principal name (userId): {}", principalName);
 
             // Extract the user's role into a GrantedAuthority (prefixed with ROLE_)
             List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
@@ -40,7 +36,7 @@ public class ChatPrincipalHandshakeHandler extends DefaultHandshakeHandler {
             return new UsernamePasswordAuthenticationToken(principalName, null, authorities);
         }
 
-        log.warn("⚠️ No user found in session attributes, Chat WebSocket session will remain anonymous");
+        log.warn(" No user found in session attributes, Chat WebSocket session will remain anonymous");
         return null;
     }
 }

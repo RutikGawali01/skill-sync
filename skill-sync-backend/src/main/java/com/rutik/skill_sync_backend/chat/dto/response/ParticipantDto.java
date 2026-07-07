@@ -2,9 +2,7 @@ package com.rutik.skill_sync_backend.chat.dto.response;
 
 import lombok.*;
 
-/**
- * DTO representing a conversation participant.
- */
+
 @Getter
 @Setter
 @NoArgsConstructor

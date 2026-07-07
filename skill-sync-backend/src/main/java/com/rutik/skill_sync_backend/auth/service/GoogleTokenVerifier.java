@@ -20,7 +20,7 @@ public class GoogleTokenVerifier {
         JacksonFactory jsonFactory = JacksonFactory.getDefaultInstance();
 
         this.verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
-                .setAudience(Collections.singletonList(clientId)) // ✅ IMPORTANT
+                .setAudience(Collections.singletonList(clientId)) // IMPORTANT
                 .build();
     }
 

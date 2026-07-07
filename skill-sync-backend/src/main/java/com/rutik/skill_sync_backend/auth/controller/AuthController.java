@@ -64,7 +64,7 @@ public class AuthController {
 
         AuthResponse auth = oauthService.handleGoogleLogin(request);
 
-        // ✅ Set refresh token in HttpOnly cookie
+        // Set refresh token in HttpOnly cookie
         cookieUtil.add(response, auth.getRefreshToken());
 
         return ResponseEntity.ok(

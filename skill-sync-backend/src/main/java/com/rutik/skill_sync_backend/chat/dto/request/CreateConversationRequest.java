@@ -4,9 +4,7 @@ import com.rutik.skill_sync_backend.chat.enums.ConversationType;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-/**
- * Request DTO to create a new Conversation.
- */
+
 @Getter
 @Setter
 @NoArgsConstructor

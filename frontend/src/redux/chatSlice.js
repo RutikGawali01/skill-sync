@@ -94,6 +94,18 @@ const chatSlice = createSlice({
       state.typingUsers = {};
     }
   },
+  extraReducers: (builder) => {
+    builder.addCase('reviews/submitReview/fulfilled', (state, action) => {
+      const review = action.payload;
+      if (!review) return;
+      const index = state.sessions.findIndex((s) => s.id === review.sessionId);
+      if (index !== -1) {
+        state.sessions[index].reviewSubmitted = true;
+        state.sessions[index].reviewRating = review.overallRating;
+        state.sessions[index].reviewComment = review.feedback;
+      }
+    });
+  },
 });
 
 export const {

@@ -11,9 +11,7 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
-/**
- * Main WebSocket and STOMP message broker configuration.
- */
+
     @Configuration
     @EnableWebSocketMessageBroker
     @RequiredArgsConstructor
@@ -52,10 +50,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
                     .withSockJS();
         }
 
-        /**
-         * Dedicated task scheduler for sending and receiving heartbeats.
-         * Prevents blocking of default worker threads.
-         */
+
         @Bean
         public TaskScheduler heartbeatScheduler() {
             ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();

@@ -2,9 +2,7 @@ package com.rutik.skill_sync_backend.notification.template;
 
 import org.springframework.stereotype.Service;
 
-/**
- * Implementation of NotificationTemplateService that builds copy and message content.
- */
+
 @Service
 public class NotificationTemplateServiceImpl implements NotificationTemplateService {
 

@@ -22,10 +22,11 @@
 
 import { useEffect, useState, useCallback, useMemo, memo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, BookOpen, Star, AlertCircle, Layers, Award,
-  ArrowLeftRight, ShieldCheck, CalendarPlus, ChevronLeft, ChevronRight,
+  ArrowLeftRight, ShieldCheck, CalendarPlus, ChevronLeft, ChevronRight, Eye,
 } from 'lucide-react';
 import { Tooltip } from '@mantine/core';
 
@@ -94,7 +95,7 @@ const SkeletonCard = () => (
 );
 
 // ── Existing SkillCard (preserved verbatim) ───────────────────────────────────
-const SkillCard = memo(({ skill, index, onRequestSession }) => {
+const SkillCard = memo(({ skill, index, onViewDetails, onViewProfile, onRequestSession }) => {
   const {
     skillName, skillLevel, category, fullName, profilePicture,
     rating, completedSessions, wantsToLearn, isVerified,
@@ -110,15 +111,28 @@ const SkillCard = memo(({ skill, index, onRequestSession }) => {
   const isNewMentor  = ratingValue === 0;
 
   const cardBorderAndShadow = isVerified
-    ? 'border-green-200/60 dark:border-green-900/40 shadow-[0_4px_20px_-4px_rgba(22,163,74,0.08)] hover:shadow-[0_8px_30px_-4px_rgba(22,163,74,0.15)]'
-    : 'border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-[0_16px_36px_-8px_rgba(124,58,237,0.18)]';
+    ? 'border-green-200/60 dark:border-green-900/40 shadow-[0_4px_20px_-4px_rgba(22,163,74,0.08)] hover:shadow-[0_8px_30px_-4px_rgba(22,163,74,0.15)] hover:border-green-300 dark:hover:border-green-800'
+    : 'border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-[0_16px_36px_-8px_rgba(124,58,237,0.18)] hover:border-violet-300 dark:hover:border-violet-850';
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay: index * 0.06 }}
-      whileHover={{ y: -5 }}
+      whileHover={{ y: -5, scale: 1.01 }}
+      onClick={() => {
+        const adapted = {
+          candidate: {
+            id: skill.userId,
+            name: skill.fullName,
+            profilePicUrl: skill.profilePicture,
+            rating: skill.rating,
+            completedSessions: skill.completedSessions,
+            bio: skill.bio
+          }
+        };
+        onViewDetails?.(adapted);
+      }}
       className={`bg-white dark:bg-gray-900 border rounded-2xl p-5 cursor-pointer group transition-all duration-300 flex flex-col gap-3 ${cardBorderAndShadow}`}
     >
       <div className="flex items-center justify-between">
@@ -214,15 +228,34 @@ const SkillCard = memo(({ skill, index, onRequestSession }) => {
         <AvailabilityPreview slots={skill.availability} compact maxSlots={2} />
       </div>
 
-      <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.97 }}
-        onClick={() => onRequestSession?.(skill)}
-        className="mt-1 w-full py-2 bg-violet-50 dark:bg-violet-950/50 hover:bg-violet-100 dark:hover:bg-violet-900/50 text-violet-600 dark:text-violet-400 rounded-xl font-semibold text-sm transition-colors flex items-center justify-center gap-2"
-      >
-        <CalendarPlus className="w-3.5 h-3.5" />
-        Request Session
-      </motion.button>
+      <div className="flex gap-2 pt-1">
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (skill.userId) onViewProfile?.(skill.userId);
+          }}
+          aria-label={`View profile for ${fullName}`}
+          className="flex-1 py-2 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-xl font-semibold text-sm transition-colors flex items-center justify-center gap-2 border border-gray-100 dark:border-gray-700"
+        >
+          <Eye className="w-3.5 h-3.5" />
+          View Profile
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRequestSession?.(skill);
+          }}
+          aria-label={`Request session with ${fullName}`}
+          className="flex-1 py-2 bg-violet-50 dark:bg-violet-950/50 hover:bg-violet-100 dark:hover:bg-violet-900/50 text-violet-600 dark:text-violet-400 rounded-xl font-semibold text-sm transition-colors flex items-center justify-center gap-2"
+        >
+          <CalendarPlus className="w-3.5 h-3.5" />
+          Request
+        </motion.button>
+      </div>
     </motion.div>
   );
 });
@@ -306,6 +339,7 @@ const tabVariants = {
 // ── Page ──────────────────────────────────────────────────────────────────────
 const SkillsPage = () => {
   const dispatch  = useDispatch();
+  const navigate  = useNavigate();
 
   // ── Explore All (existing redux) ──────────────────────────────────────────
   const skills            = useSelector(selectExploreSkills);
@@ -435,6 +469,10 @@ const SkillsPage = () => {
   const handleViewDetails = useCallback((match) => {
     openMatch(match);
   }, [openMatch]);
+
+  const handleViewProfile = useCallback((userId) => {
+    navigate(`/users/${userId}`);
+  }, [navigate]);
 
   const handleRecPageChange = useCallback((newPage) => {
     goToPage(newPage, recQuery, recSortBy, recSortDir);
@@ -765,6 +803,8 @@ const SkillsPage = () => {
                       key={skill.userSkillId ?? i}
                       skill={skill}
                       index={i}
+                      onViewDetails={handleViewDetails}
+                      onViewProfile={handleViewProfile}
                       onRequestSession={handleRequestSession}
                     />
                   ))

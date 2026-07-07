@@ -3,9 +3,6 @@ package com.rutik.skill_sync_backend.chat.dto.request;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-/**
- * DTO representing a Typing Event.
- */
 @Getter
 @Setter
 @NoArgsConstructor

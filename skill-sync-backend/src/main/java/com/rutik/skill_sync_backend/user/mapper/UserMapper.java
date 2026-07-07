@@ -2,6 +2,7 @@ package com.rutik.skill_sync_backend.user.mapper;
 
 import com.rutik.skill_sync_backend.user.dto.UserProfileResponseDTO;
 import com.rutik.skill_sync_backend.user.entity.User;
+import java.util.ArrayList;
 
 public class UserMapper {
 
@@ -19,7 +20,7 @@ public class UserMapper {
                 .learningGoal(user.getLearningGoal())
                 .goalTimeline(user.getGoalTimeline())
                 .teachingMotivation(user.getTeachingMotivation())
-                .teachingApproaches(user.getTeachingApproaches())
+                .teachingApproaches(user.getTeachingApproaches() != null ? new ArrayList<>(user.getTeachingApproaches()) : null)
                 .preferredLearningMethod(user.getPreferredLearningMethod())
                 .communicationPace(user.getCommunicationPace())
                 .preferredLanguage(user.getPreferredLanguage())

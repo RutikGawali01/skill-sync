@@ -45,7 +45,7 @@ const buildSockJS = () => {
   const token = tokenService.get();
   if (!token) {
     console.warn('[WebSocket] buildSockJS: no access token in storage — aborting connection');
-    throw new Error('[WebSocket] No access token in storage');
+    return new SockJS(WS_URL);
   }
   return new SockJS(`${WS_URL}?token=${encodeURIComponent(token)}`);
 };
@@ -73,6 +73,12 @@ export const connectWebSocket = (callbacks = {}) => {
   const { onNotification, onUnreadCount, onConnect, onDisconnect, onError } = callbacks;
 
   teardown();
+
+  const token = tokenService.get();
+  if (!token) {
+    console.warn('[WebSocket] connectWebSocket: no access token in storage — aborting connection');
+    return;
+  }
 
   client = new Client({
     webSocketFactory: buildSockJS,

@@ -8,9 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-/**
- * DTO representing session metadata for rendering a Session Card on the chat timeline.
- */
+
 @Getter
 @Setter
 @NoArgsConstructor

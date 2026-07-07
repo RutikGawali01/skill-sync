@@ -6,6 +6,7 @@ import com.rutik.skill_sync_backend.session.dto.request.UpdateSessionStatusReque
 import com.rutik.skill_sync_backend.session.dto.response.SessionResponseDto;
 import com.rutik.skill_sync_backend.session.enums.SessionStatus;
 import org.springframework.data.domain.Page;
+import com.rutik.skill_sync_backend.common.dto.PageResponse;
 
 public interface SessionService {
 
@@ -31,7 +32,7 @@ public interface SessionService {
             Long sessionId
     );
 
-    Page<SessionResponseDto> getMySessions(
+    PageResponse<SessionResponseDto> getMySessions(
             Long userId,
             SessionStatus status,
             Boolean upcoming,

@@ -7,10 +7,7 @@ import com.rutik.skill_sync_backend.notification.enums.NotificationType;
 import com.rutik.skill_sync_backend.user.entity.User;
 import org.springframework.stereotype.Component;
 
-/**
- * Factory class responsible ONLY for constructing Notification entities.
- * Decoupled from title/message formatting copy and business rules.
- */
+
 @Component
 public class NotificationFactory {
 

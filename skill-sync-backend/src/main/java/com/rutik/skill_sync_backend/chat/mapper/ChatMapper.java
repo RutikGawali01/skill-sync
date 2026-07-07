@@ -8,21 +8,14 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
-/**
- * Mapper component using ModelMapper for converting chat entities to DTO responses.
- */
+
 @Component
 @RequiredArgsConstructor
 public class ChatMapper {
 
     private final ModelMapper modelMapper;
 
-    /**
-     * Map a Conversation entity to a ConversationResponse DTO.
-     *
-     * @param conversation the Conversation entity
-     * @return the ConversationResponse DTO
-     */
+
     public ConversationResponse toResponse(Conversation conversation) {
         if (conversation == null) {
             return null;
@@ -30,12 +23,7 @@ public class ChatMapper {
         return modelMapper.map(conversation, ConversationResponse.class);
     }
 
-    /**
-     * Map a Message entity to a MessageResponse DTO.
-     *
-     * @param message the Message entity
-     * @return the MessageResponse DTO
-     */
+
     public MessageResponse toResponse(Message message) {
         if (message == null) {
             return null;

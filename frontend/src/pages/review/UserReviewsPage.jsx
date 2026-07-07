@@ -17,10 +17,10 @@ import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import {
   Box, Container, Stack, Title, Group, Text,
-  Grid, Divider, ActionIcon, Tooltip,
+  Grid, Divider,
 } from '@mantine/core';
 import {
-  IconStarsFilled, IconSun, IconMoon,
+  IconStarsFilled,
 } from '@tabler/icons-react';
 
 import { useTheme } from '../../context/ThemeContext';
@@ -31,7 +31,7 @@ import ReviewSummary from '../../components/review/ReviewSummary';
 import ReviewList from '../../components/review/ReviewList';
 
 const UserReviewsPage = () => {
-  const { isDark, toggleTheme } = useTheme();
+  const { isDark } = useTheme();
   const currentUser   = useSelector((state) => state.auth.user);
   const currentUserId = currentUser?.id;
 
@@ -108,19 +108,7 @@ const UserReviewsPage = () => {
               </Title>
             </Group>
 
-            <Tooltip label={isDark ? 'Switch to light mode' : 'Switch to dark mode'} position="left">
-              <ActionIcon
-                id="reviews-theme-toggle"
-                onClick={toggleTheme}
-                variant="light"
-                color="violet"
-                size="lg"
-                radius="md"
-                aria-label="Toggle theme"
-              >
-                {isDark ? <IconSun size={18} /> : <IconMoon size={18} />}
-              </ActionIcon>
-            </Tooltip>
+
           </Group>
 
           {/* ── Dashboard Grid ── */}

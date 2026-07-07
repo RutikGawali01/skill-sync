@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
+import com.rutik.skill_sync_backend.common.dto.PageResponse;
 
 
 @RestController
@@ -123,7 +124,7 @@ public class SessionController {
     }
 
     @GetMapping("/me")
-    public ApiResponse<Page<SessionResponseDto>> getMySessions(
+    public ApiResponse<PageResponse<SessionResponseDto>> getMySessions(
             @RequestParam(required = false)
             SessionStatus status,
 
@@ -149,7 +150,7 @@ public class SessionController {
         // FETCH SESSIONS
         // ==========================================
 
-        Page<SessionResponseDto> response =
+        PageResponse<SessionResponseDto> response =
                 sessionService.getMySessions(
                         user.getId(),
                         status,

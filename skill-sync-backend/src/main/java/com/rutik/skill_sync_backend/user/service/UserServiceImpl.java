@@ -23,12 +23,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -86,6 +88,7 @@ public class UserServiceImpl implements UserService {
 //    }
 
     @Override
+    @Transactional
     @Caching(evict = {
         @CacheEvict(value = CacheNames.PROFILE_CACHE, key = "'profile:' + #userId"),
         @CacheEvict(value = CacheNames.MATCH_CACHE, allEntries = true),

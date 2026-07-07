@@ -25,7 +25,6 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Transactional
     public RefreshToken createToken(User user) {
 
-        repo.revokeAllByUser(user); // 🔥 better than delete
 
         RefreshToken token = RefreshToken.builder()
                 .token(UUID.randomUUID().toString())
@@ -43,7 +42,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         RefreshToken rt = repo.findByToken(token)
                 .orElseThrow(() -> new UnauthorizedException("Invalid refresh token"));
 
-        if (rt.isRevoked() || rt.getExpiryDate().isBefore(LocalDateTime.now())) {
+        if (rt.getExpiryDate().isBefore(LocalDateTime.now())) {
             throw new UnauthorizedException("Refresh token expired");
         }
 
@@ -54,6 +53,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Transactional
     public void revoke(RefreshToken token) {
         token.setRevoked(true);
+        token.setRevokedAt(LocalDateTime.now());
         repo.save(token);
     }
 

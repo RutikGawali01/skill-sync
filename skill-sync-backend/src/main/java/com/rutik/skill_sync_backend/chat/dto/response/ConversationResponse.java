@@ -8,9 +8,7 @@ import org.springframework.data.domain.Slice;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * DTO representing a Conversation response.
- */
+
 @Getter
 @Setter
 @NoArgsConstructor

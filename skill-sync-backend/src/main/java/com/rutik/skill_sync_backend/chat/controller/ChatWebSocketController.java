@@ -17,10 +17,6 @@ import org.springframework.stereotype.Controller;
 import java.security.Principal;
 import java.util.List;
 
-/**
- * WebSocket Controller handling real-time chat operations using STOMP.
- * Bypasses HTTP thread context by resolving users from the STOMP Principal name (User ID).
- */
 @Controller
 @RequiredArgsConstructor
 @Slf4j
@@ -30,10 +26,6 @@ public class ChatWebSocketController {
     private final ConversationParticipantRepository conversationParticipantRepository;
     private final SimpMessagingTemplate simpMessagingTemplate;
 
-    /**
-     * Handle client sending a message over STOMP.
-     * Destination: /app/chat/send
-     */
     @MessageMapping("/chat/send")
     public void handleSendMessage(@Payload SendMessageRequest request, Principal principal) {
         if (principal == null) {
@@ -49,10 +41,7 @@ public class ChatWebSocketController {
         }
     }
 
-    /**
-     * Handle typing status events over STOMP.
-     * Destination: /app/chat/typing
-     */
+
     @MessageMapping("/chat/typing")
     public void handleTypingEvent(@Payload TypingEvent event, Principal principal) {
         if (principal == null) {
@@ -86,10 +75,6 @@ public class ChatWebSocketController {
         }
     }
 
-    /**
-     * Handle reading messages / sending read receipts over STOMP.
-     * Destination: /app/chat/read
-     */
     @MessageMapping("/chat/read")
     public void handleReadReceipt(@Payload ReadReceiptRequest request, Principal principal) {
         if (principal == null) {

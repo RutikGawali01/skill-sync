@@ -4,10 +4,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * Lightweight DTO returned when the frontend establishes a connection or requests a summary.
- * It contains the count of unread notifications, a list of recent notifications, and the server time.
- */
+
 @Getter
 @Setter
 @NoArgsConstructor

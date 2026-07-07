@@ -46,9 +46,7 @@ public class RedisConfig {
     @Value("${spring.data.redis.timeout:2000ms}")
     private String redisTimeout;
 
-    /**
-     * Configure Redis Connection Factory using Lettuce client
-     */
+
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
         log.info("Initializing LettuceConnectionFactory pointing to Redis at {}:{}", redisHost, redisPort);
@@ -84,15 +82,12 @@ public class RedisConfig {
                 return Duration.ofMillis(Long.parseLong(clean));
             }
         } catch (NumberFormatException e) {
-            log.warn("⚠️ Failed to parse Redis timeout: '{}'. Using default of 2000ms.", timeoutStr, e);
+            log.warn("️ Failed to parse Redis timeout: '{}'. Using default of 2000ms.", timeoutStr, e);
             return Duration.ofMillis(2000);
         }
     }
 
-    /**
-     * Custom ObjectMapper configured for Redis JSON serialization with Java Time support and DefaultTyping
-     */
-    @Bean(name = "redisObjectMapper")
+
     public ObjectMapper redisObjectMapper() {
         log.info("Creating custom ObjectMapper for Redis serialization");
         ObjectMapper mapper = new ObjectMapper();
@@ -106,7 +101,7 @@ public class RedisConfig {
         PolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator.builder()
                 .allowIfBaseType(Object.class)
                 .build();
-        mapper.activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
+        mapper.activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.EVERYTHING, JsonTypeInfo.As.PROPERTY);
 
         // Fail-safe deserialization
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -114,17 +109,13 @@ public class RedisConfig {
         return mapper;
     }
 
-    /**
-     * Generic Jackson JSON serializer configured with the custom ObjectMapper
-     */
+
     @Bean
-    public GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer(ObjectMapper redisObjectMapper) {
-        return new GenericJackson2JsonRedisSerializer(redisObjectMapper);
+    public GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer() {
+        return new GenericJackson2JsonRedisSerializer(redisObjectMapper());
     }
 
-    /**
-     * RedisTemplate for programmatically communicating with Redis
-     */
+
     @Bean
     public RedisTemplate<String, Object> redisTemplate(
             RedisConnectionFactory connectionFactory,
@@ -148,9 +139,7 @@ public class RedisConfig {
         return template;
     }
 
-    /**
-     * CacheManager bean configuring RedisCacheManager with default configuration and specific TTL values per cache
-     */
+
     @Bean
     public CacheManager cacheManager(
             RedisConnectionFactory connectionFactory,
@@ -189,18 +178,16 @@ public class RedisConfig {
         return new LoggingCacheManager(redisCacheManager);
     }
 
-    /**
-     * Checks connection to Redis at startup and logs results using SLF4J
-     */
+
     @Bean
     public CommandLineRunner verifyRedisConnection(RedisConnectionFactory connectionFactory) {
         return args -> {
             try {
                 log.info("Testing connection to Redis host: {} and port: {}...", redisHost, redisPort);
                 String pingResult = connectionFactory.getConnection().ping();
-                log.info("✅ Successfully connected to Redis! PING Response: {}", pingResult);
+                log.info("Successfully connected to Redis! PING Response: {}", pingResult);
             } catch (Exception e) {
-                log.error("❌ ERROR: Failed to connect to Redis during startup at {}:{}. Caching will fail if Redis is offline.", 
+                log.error(" ERROR: Failed to connect to Redis during startup at {}:{}. Caching will fail if Redis is offline.",
                         redisHost, redisPort, e);
             }
         };

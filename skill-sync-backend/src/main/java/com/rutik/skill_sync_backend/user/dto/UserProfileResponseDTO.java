@@ -10,6 +10,8 @@ import java.util.List;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserProfileResponseDTO {
 
     private Long id;

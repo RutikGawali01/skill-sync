@@ -5,11 +5,7 @@ import com.rutik.skill_sync_backend.notification.dto.response.NotificationRespon
 import com.rutik.skill_sync_backend.notification.dto.response.NotificationSocketDto;
 import org.springframework.stereotype.Component;
 
-/**
- * Mapper component for Notification entities.
- * Uses direct constructor mapping (no heavy reflection libraries like ModelMapper)
- * to maximize mapping performance and remain fully unit-testable.
- */
+
 @Component
 public class NotificationMapper {
 

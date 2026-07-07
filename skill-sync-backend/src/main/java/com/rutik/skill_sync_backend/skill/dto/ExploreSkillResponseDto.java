@@ -2,13 +2,17 @@ package com.rutik.skill_sync_backend.skill.dto;
 
 import com.rutik.skill_sync_backend.availability.dto.response.AvailabilityResponseDTO;
 import com.rutik.skill_sync_backend.skill.enums.SkillLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ExploreSkillResponseDto {
 
     // ==========================================

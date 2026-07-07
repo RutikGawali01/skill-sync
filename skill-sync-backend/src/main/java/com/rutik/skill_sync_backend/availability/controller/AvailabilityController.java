@@ -20,7 +20,7 @@ public class AvailabilityController {
 
     private final AvailabilityService availabilityService;
 
-    // 🔥 ADD SLOT
+    // ADD SLOT
     @PostMapping("/user/{userId}")
     public ApiResponse<AvailabilityResponseDTO> addAvailability(
 
@@ -37,7 +37,7 @@ public class AvailabilityController {
         );
     }
 
-    // 🔥 UPDATE SLOT
+    //  UPDATE SLOT
     @PutMapping("/user/{userId}/{availabilityId}")
     public ApiResponse<AvailabilityResponseDTO> updateAvailability(
 
@@ -60,7 +60,7 @@ public class AvailabilityController {
         );
     }
 
-    // 🔥 GET USER AVAILABILITY
+    //  GET USER AVAILABILITY
     @GetMapping("/user/{userId}")
     public ApiResponse<List<AvailabilityResponseDTO>>
     getUserAvailability(
@@ -73,7 +73,7 @@ public class AvailabilityController {
         );
     }
 
-    // 🔥 GET COMMON SLOTS
+    //  GET COMMON SLOTS
     @GetMapping("/common")
     public ApiResponse<List<CommonAvailabilityResponseDTO>>
     getCommonAvailability(
@@ -92,7 +92,7 @@ public class AvailabilityController {
         );
     }
 
-    // 🔥 DELETE SLOT
+    //  DELETE SLOT
     @DeleteMapping("/user/{userId}/{availabilityId}")
     public ApiResponse<Void> deleteAvailability(
 
@@ -111,7 +111,7 @@ public class AvailabilityController {
         );
     }
 
-    // 🔥 AUTO SESSION SUGGESTIONS
+    //  AUTO SESSION SUGGESTIONS
     @GetMapping("/session-suggestions")
     public ApiResponse<List<SessionSuggestionResponseDTO>>
     getSessionSuggestions(

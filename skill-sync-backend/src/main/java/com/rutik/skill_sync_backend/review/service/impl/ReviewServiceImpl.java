@@ -26,6 +26,7 @@ import com.rutik.skill_sync_backend.common.constants.CacheNames;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -156,10 +157,10 @@ public class ReviewServiceImpl implements ReviewService {
 
         User reviewee = getUserById(userId);
 
-        return reviewRepository.findByReviewee(reviewee)
+        return new ArrayList<>(reviewRepository.findByReviewee(reviewee)
                 .stream()
                 .map(ReviewMapper::toDto)
-                .toList();
+                .toList());
     }
 
     // ==========================================

@@ -1,9 +1,6 @@
 package com.rutik.skill_sync_backend.notification.template;
 
-/**
- * Service interface centralizing user-facing notification titles and messages.
- * Helps isolate user interface copy changes from the core database/business layers.
- */
+
 public interface NotificationTemplateService {
 
     String buildReviewReceivedTitle();

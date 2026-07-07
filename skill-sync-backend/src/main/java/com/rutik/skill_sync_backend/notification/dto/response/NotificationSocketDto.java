@@ -5,11 +5,7 @@ import com.rutik.skill_sync_backend.notification.enums.NotificationType;
 import lombok.*;
 import java.time.LocalDateTime;
 
-/**
- * DTO optimized for real-time WebSocket payloads.
- * Excludes unnecessary audit fields (updatedAt, isDeleted) or circular dependencies
- * to minimize socket payload size and maximize bandwidth efficiency.
- */
+
 @Getter
 @Setter
 @NoArgsConstructor

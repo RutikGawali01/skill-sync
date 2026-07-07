@@ -28,9 +28,9 @@ public class LoggingCache implements Cache {
     public ValueWrapper get(Object key) {
         ValueWrapper wrapper = delegate.get(key);
         if (wrapper != null) {
-            log.info("📊 CACHE HIT - Cache: '{}', Key: '{}'", getName(), key);
+            log.info(" CACHE HIT - Cache: '{}', Key: '{}'", getName(), key);
         } else {
-            log.info("📊 CACHE MISS - Cache: '{}', Key: '{}'", getName(), key);
+            log.info("CACHE MISS - Cache: '{}', Key: '{}'", getName(), key);
         }
         return wrapper;
     }
@@ -39,9 +39,9 @@ public class LoggingCache implements Cache {
     public <T> T get(Object key, Class<T> type) {
         T value = delegate.get(key, type);
         if (value != null) {
-            log.info("📊 CACHE HIT - Cache: '{}', Key: '{}'", getName(), key);
+            log.info("CACHE HIT - Cache: '{}', Key: '{}'", getName(), key);
         } else {
-            log.info("📊 CACHE MISS - Cache: '{}', Key: '{}'", getName(), key);
+            log.info(" CACHE MISS - Cache: '{}', Key: '{}'", getName(), key);
         }
         return value;
     }
@@ -49,25 +49,25 @@ public class LoggingCache implements Cache {
     @Override
     public <T> T get(Object key, Callable<T> valueLoader) {
         // Value loader is typically used for sync cache loading (e.g. get with fallback)
-        log.info("📊 CACHE GET (with Loader) - Cache: '{}', Key: '{}'", getName(), key);
+        log.info("CACHE GET (with Loader) - Cache: '{}', Key: '{}'", getName(), key);
         return delegate.get(key, valueLoader);
     }
 
     @Override
     public void put(Object key, Object value) {
-        log.info("📊 CACHE PUT - Cache: '{}', Key: '{}'", getName(), key);
+        log.info("CACHE PUT - Cache: '{}', Key: '{}'", getName(), key);
         delegate.put(key, value);
     }
 
     @Override
     public void evict(Object key) {
-        log.info("📊 CACHE EVICT - Cache: '{}', Key: '{}'", getName(), key);
+        log.info(" CACHE EVICT - Cache: '{}', Key: '{}'", getName(), key);
         delegate.evict(key);
     }
 
     @Override
     public void clear() {
-        log.info("📊 CACHE CLEAR - Cache: '{}'", getName());
+        log.info(" CACHE CLEAR - Cache: '{}'", getName());
         delegate.clear();
     }
 }

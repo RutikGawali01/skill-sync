@@ -6,10 +6,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-/**
- * DTO representing a summary of a Conversation, including metadata of the other participant
- * and the last message sent in the conversation.
- */
+
 @Getter
 @Setter
 @NoArgsConstructor

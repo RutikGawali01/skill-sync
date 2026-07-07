@@ -16,6 +16,6 @@ public class SessionSuggestionResponseDTO {
 
     private LocalTime suggestedEndTime;
 
-    // 🔥 TOTAL MINUTES AVAILABLE
+    // TOTAL MINUTES AVAILABLE
     private Long durationInMinutes;
 }

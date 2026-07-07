@@ -15,7 +15,7 @@ public interface AvailabilityRepository extends JpaRepository<Availability, Long
 
     List<Availability> findByUserIn(java.util.Collection<com.rutik.skill_sync_backend.user.entity.User> users);
 
-    // 🔥 OVERLAP DETECTION QUERY
+    // OVERLAP DETECTION QUERY
     @Query("""
             SELECT COUNT(a) > 0
             FROM Availability a
@@ -39,7 +39,7 @@ public interface AvailabilityRepository extends JpaRepository<Availability, Long
 
 
 
-    // 🔥 UPDATE OVERLAP CHECK
+    // UPDATE OVERLAP CHECK
     @Query("""
             SELECT COUNT(a) > 0
             FROM Availability a

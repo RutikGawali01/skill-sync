@@ -25,7 +25,7 @@ public class PageResponse<T> {
 
     public static <T> PageResponse<T> from(Page<T> springPage) {
         return PageResponse.<T>builder()
-                .content(springPage.getContent())
+                .content(springPage.getContent() != null ? new java.util.ArrayList<>(springPage.getContent()) : new java.util.ArrayList<>())
                 .page(springPage.getNumber())
                 .size(springPage.getSize())
                 .totalElements(springPage.getTotalElements())
@@ -45,7 +45,7 @@ public class PageResponse<T> {
         boolean hasPrevious = page > 0;
 
         return PageResponse.<T>builder()
-                .content(content)
+                .content(content != null ? new java.util.ArrayList<>(content) : new java.util.ArrayList<>())
                 .page(page)
                 .size(size)
                 .totalElements(totalElements)

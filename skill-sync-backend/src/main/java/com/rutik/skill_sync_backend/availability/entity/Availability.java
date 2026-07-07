@@ -26,7 +26,7 @@ public class Availability {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 🔥 MANY SLOTS CAN BELONG TO ONE USER
+    // MANY SLOTS CAN BELONG TO ONE USER
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

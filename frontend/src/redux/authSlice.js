@@ -4,14 +4,14 @@ import { tokenService } from '../utils/tokenUtils';
 /**
  * authSlice — stores user identity and the current accessToken in Redux.
  *
- * IMPORTANT: Reducers are pure — NO localStorage side-effects here.
- * Token persistence (read/write to localStorage) is done by:
+ * IMPORTANT: Reducers are pure — NO side-effects here.
+ * Token persistence (read/write to in-memory store) is done by:
  *   - tokenService.set()  → called by components after login / SilentRefresh
  *   - tokenService.clear() → called by the Axios 401 interceptor or logout handler
  */
 const authSlice = createSlice({
   name: 'auth',
-  // Seed token from storage so Redux state matches localStorage on first render
+  // Token is in-memory — always null on page load. SilentRefresh restores session via cookie.
   initialState: {
     user: null,
     token: tokenService.get() || null,

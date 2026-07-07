@@ -52,3 +52,14 @@ export const getVerifiedBadges = async () => {
   const response = await api.get('/users/skills/verified-badges');
   return response.data.data;
 };
+
+/**
+ * Fetch verified badges for a specific user.
+ * Backend: GET /api/users/skills/user/{userId}/verified-badges
+ * @param {string|number} userId
+ * @returns {Promise<{ skillId, skillName, verificationScore, verifiedAt }[]>}
+ */
+export const getVerifiedBadgesByUserId = async (userId) => {
+  const response = await api.get(`/users/skills/user/${userId}/verified-badges`);
+  return response.data.data;
+};

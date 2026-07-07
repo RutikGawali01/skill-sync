@@ -78,7 +78,7 @@ export const ProfileHeaderSkeleton = ({ isDark }) => (
 );
 
 // ── Component ────────────────────────────────────────────────────────────────
-const ProfileHeader = ({ profile, isEditing, onEdit, onCancel, isDark }) => {
+const ProfileHeader = ({ profile, isEditing, onEdit, onCancel, isDark, readOnly = false }) => {
   const { name, email, profilePicUrl, rating, completedSessions, location, timezone } = profile;
   const trustBadge = getTrustBadge(rating ?? 0);
 
@@ -228,40 +228,42 @@ const ProfileHeader = ({ profile, isEditing, onEdit, onCancel, isDark }) => {
         </Stack>
 
         {/* ── Action Buttons ── */}
-        <Group gap="sm" style={{ flexShrink: 0 }}>
-          {isEditing ? (
-            <Tooltip label="Cancel editing">
-              <ActionIcon
-                id="cancel-edit-btn"
-                variant="light"
-                color="gray"
-                size="lg"
+        {!readOnly && (
+          <Group gap="sm" style={{ flexShrink: 0 }}>
+            {isEditing ? (
+              <Tooltip label="Cancel editing">
+                <ActionIcon
+                  id="cancel-edit-btn"
+                  variant="light"
+                  color="gray"
+                  size="lg"
+                  radius="md"
+                  onClick={onCancel}
+                  style={{ border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)' }}
+                >
+                  <IconX size={18} />
+                </ActionIcon>
+              </Tooltip>
+            ) : (
+              <Button
+                id="edit-profile-btn"
+                leftSection={<IconEdit size={16} />}
+                onClick={onEdit}
+                variant="gradient"
+                gradient={{ from: '#7c3aed', to: '#4f46e5', deg: 135 }}
                 radius="md"
-                onClick={onCancel}
-                style={{ border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)' }}
+                size="sm"
+                style={{
+                  boxShadow: '0 4px 15px rgba(124,58,237,0.4)',
+                  fontWeight: 600,
+                  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                }}
               >
-                <IconX size={18} />
-              </ActionIcon>
-            </Tooltip>
-          ) : (
-            <Button
-              id="edit-profile-btn"
-              leftSection={<IconEdit size={16} />}
-              onClick={onEdit}
-              variant="gradient"
-              gradient={{ from: '#7c3aed', to: '#4f46e5', deg: 135 }}
-              radius="md"
-              size="sm"
-              style={{
-                boxShadow: '0 4px 15px rgba(124,58,237,0.4)',
-                fontWeight: 600,
-                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-              }}
-            >
-              Edit Profile
-            </Button>
-          )}
-        </Group>
+                Edit Profile
+              </Button>
+            )}
+          </Group>
+        )}
       </Group>
     </Box>
   );

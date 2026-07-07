@@ -56,16 +56,16 @@ public class MatchServiceImpl implements MatchService {
 
         log.info("Finding matches for userId={}", userId);
 
-        // ✅ 1. Validate input
+        //  1. Validate input
         if (userId == null) {
             throw new BadRequestException("UserId must not be null");
         }
 
-        // ✅ 2. Validate user existence
+        //  2. Validate user existence
         User currentUser = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
-        // ✅ 3. Fetch user skills
+        //  3. Fetch user skills
         List<UserSkill> mySkills = Optional.ofNullable(userSkillRepository.findByUserId(userId))
                 .orElse(Collections.emptyList());
 
@@ -74,7 +74,7 @@ public class MatchServiceImpl implements MatchService {
             return Collections.emptyList();
         }
 
-        // ✅ 4. Separate OFFER & WANT
+        //  4. Separate OFFER & WANT
         List<UserSkill> myOffers = mySkills.stream()
                 .filter(s -> s.getType() == SkillType.OFFER && s.getSkill() != null)
                 .toList();
@@ -90,7 +90,7 @@ public class MatchServiceImpl implements MatchService {
 
         Map<Long, Double> matchScoreMap = new HashMap<>();
 
-        // ✅ 5. Mutual Matching (STRICT + SAFE)
+        // 5. Mutual Matching (STRICT + SAFE)
         for (UserSkill wantSkill : myWants) {
 
             Long wantedSkillId = wantSkill.getSkill().getId();
@@ -105,17 +105,17 @@ public class MatchServiceImpl implements MatchService {
 
                 User candidateUser = candidateSkill.getUser();
 
-                // ❌ Skip self
+                //  Skip self
                 if (candidateUser.getId().equals(userId)) continue;
 
-                // ✅ Fetch candidate skills
+                // Fetch candidate skills
                 List<UserSkill> candidateSkills = Optional.ofNullable(
                         userSkillRepository.findByUserId(candidateUser.getId())
                 ).orElse(Collections.emptyList());
 
                 if (candidateSkills.isEmpty()) continue;
 
-                // ✅ STRICT mutual matching (correct logic)
+                // sTRICT mutual matching (correct logic)
                 boolean reverseMatch = false;
 
                 for (UserSkill candidateWant : candidateSkills) {
@@ -140,14 +140,14 @@ public class MatchServiceImpl implements MatchService {
 
                 if (!reverseMatch) continue;
 
-                // ✅ Score calculation
+                //  Score calculation
                 double score = calculateScore(wantSkill, candidateSkill, candidateUser);
 
                 matchScoreMap.merge(candidateUser.getId(), score, Double::sum);
             }
         }
 
-        // ✅ 6. Convert to DTO + persist matches
+        // 6. Convert to DTO + persist matches
         return matchScoreMap.entrySet()
                 .stream()
                 .map(entry -> {
@@ -168,15 +168,15 @@ public class MatchServiceImpl implements MatchService {
                 .toList();
     }
 
-    // 🎯 Ranking Algorithm
+    //  Ranking Algorithm
     private double calculateScore(UserSkill want, UserSkill offer, User candidate) {
 
         double score = 0;
 
-        // ✅ Skill match
+        //  Skill match
         score += 50;
 
-        // ✅ Level match (safe)
+        //  Level match (safe)
         if (want.getLevel() != null && offer.getLevel() != null) {
 
             int diff = Math.abs(
@@ -188,14 +188,14 @@ public class MatchServiceImpl implements MatchService {
             else score += 5;
         }
 
-        // ✅ Rating (safe)
+        //  Rating (safe)
         double rating = candidate.getRating() != null ? candidate.getRating() : 0;
         score += rating * 5;
 
         return score;
     }
 
-    // ✅ Prevent duplicate matches
+    //  Prevent duplicate matches
     private void saveMatchIfNotExists(User a, User b, double score) {
 
         boolean exists = matchRepository.findByUserAId(a.getId())
@@ -292,9 +292,9 @@ public class MatchServiceImpl implements MatchService {
         int totalElements = mutableMatches.size();
         int start = page * size;
         int end = Math.min(start + size, totalElements);
-        List<MatchResponseDTO> paginatedList = List.of();
+        List<MatchResponseDTO> paginatedList = new java.util.ArrayList<>();
         if (start < totalElements) {
-            paginatedList = mutableMatches.subList(start, end);
+            paginatedList = new java.util.ArrayList<>(mutableMatches.subList(start, end));
         }
 
         return PageResponse.from(paginatedList, page, size, totalElements);

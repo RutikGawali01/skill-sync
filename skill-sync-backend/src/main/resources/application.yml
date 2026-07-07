@@ -51,7 +51,7 @@ app:
         limit: 20
         window-seconds: 60
       - path: "/api/users/**"
-        limit: 30
+        limit: 10
         window-seconds: 60
 
 match:

@@ -79,7 +79,7 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        // 🔥 invalidate old tokens
+        //  invalidate old tokens
         user.setTokenVersion((user.getTokenVersion() == null ? 0 : user.getTokenVersion()) + 1);
         userRepository.save(user);
 
@@ -93,8 +93,13 @@ public class AuthServiceImpl implements AuthService {
         RefreshToken oldToken = refreshService.verify(token);
 
         if (oldToken.isRevoked()) {
-            refreshService.revokeAllUserTokens(oldToken.getUser());
-            throw new UnauthorizedException("Token reuse detected");
+            if (oldToken.getRevokedAt() != null && oldToken.getRevokedAt().isAfter(LocalDateTime.now().minusSeconds(30))) {
+                // Within 30s grace period (multiple tab race condition) -> return new response
+                return generateAuthResponse(oldToken.getUser());
+            } else {
+                refreshService.revokeAllUserTokens(oldToken.getUser());
+                throw new UnauthorizedException("Token reuse detected");
+            }
         }
 
         refreshService.revoke(oldToken);
@@ -105,18 +110,21 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void logout(String token) {
-
-        RefreshToken rt = refreshService.verify(token);
-
-        // 🔥 invalidate ALL sessions
-        User user = rt.getUser();
-        user.setTokenVersion((user.getTokenVersion() == null ? 0 : user.getTokenVersion()) + 1);
-        userRepository.save(user);
-
-        refreshService.revokeAllUserTokens(user);
+        if (token == null || token.isBlank()) {
+            return;
+        }
+        try {
+            RefreshToken rt = refreshService.verify(token);
+            User user = rt.getUser();
+            user.setTokenVersion((user.getTokenVersion() == null ? 0 : user.getTokenVersion()) + 1);
+            userRepository.save(user);
+            refreshService.revokeAllUserTokens(user);
+        } catch (Exception ex) {
+            // Log/ignore and allow logout to complete normally for client
+        }
     }
 
-    // 🔥 common method
+    // common method
     private AuthResponse generateAuthResponse(User user) {
 
         String accessToken = jwtService.generateToken(user);

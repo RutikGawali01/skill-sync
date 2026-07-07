@@ -15,10 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Service implementation for tracking real-time user online presence using an in-memory map.
- * Supports multiple tabs/devices per user using connection counting.
- */
+
 @Service
 @RequiredArgsConstructor
 @Slf4j

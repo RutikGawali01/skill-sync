@@ -141,11 +141,11 @@ public class AvailabilityServiceImpl implements AvailabilityService {
             Long userId
     ) {
 
-        return availabilityRepository
+        return new ArrayList<>(availabilityRepository
                 .findByUserIdOrderByDayAscStartTimeAsc(userId)
                 .stream()
                 .map(AvailabilityMapper::toDTO)
-                .toList();
+                .toList());
     }
 
     @Override
@@ -171,7 +171,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
 
             for (Availability second : secondUserAvailability) {
 
-                // 🔥 SAME DAY REQUIRED
+                //  SAME DAY REQUIRED
                 if (!first.getDay().equals(second.getDay())) {
                     continue;
                 }
@@ -186,7 +186,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
                                 ? first.getEndTime()
                                 : second.getEndTime();
 
-                // 🔥 VALID OVERLAP
+                // VALID OVERLAP
                 if (overlapStart.isBefore(overlapEnd)) {
 
                     commonSlots.add(
@@ -252,7 +252,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
 
             for (Availability second : secondUserAvailability) {
 
-                // 🔥 SAME DAY REQUIRED
+                // SAME DAY REQUIRED
                 if (!first.getDay().equals(second.getDay())) {
                     continue;
                 }
@@ -267,7 +267,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
                                 ? first.getEndTime()
                                 : second.getEndTime();
 
-                // 🔥 VALID OVERLAP
+                // VALID OVERLAP
                 if (overlapStart.isBefore(overlapEnd)) {
 
                     long duration =
@@ -276,7 +276,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
                                     overlapEnd
                             ).toMinutes();
 
-                    // 🔥 FILTER SHORT SLOTS
+                    //  FILTER SHORT SLOTS
                     if (duration >= minimumDurationMinutes) {
 
                         suggestions.add(
@@ -292,7 +292,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
             }
         }
 
-        // 🔥 SORT BY LONGEST SESSION FIRST
+        //  SORT BY LONGEST SESSION FIRST
         suggestions.sort(
                 (a, b) ->
                         Long.compare(

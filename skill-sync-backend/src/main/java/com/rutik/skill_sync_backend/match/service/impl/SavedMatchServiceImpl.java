@@ -22,24 +22,24 @@ public class SavedMatchServiceImpl implements SavedMatchService {
     @Override
     public void saveMatch(Long userId, Long matchedUserId) {
 
-        // ✅ 1. Null validation
+        //  1. Null validation
         if (userId == null || matchedUserId == null) {
             throw new BadRequestException("UserId and MatchedUserId must not be null");
         }
 
-        // ✅ 2. Self-save check
+        //  2. Self-save check
         if (userId.equals(matchedUserId)) {
             throw new BadRequestException("Cannot save yourself");
         }
 
-        // ✅ 3. Validate users exist FIRST (fail fast)
+        //  3. Validate users exist FIRST (fail fast)
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
         User matchedUser = userRepository.findById(matchedUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("Matched user not found with id: " + matchedUserId));
 
-        // ✅ 4. Already saved check
+        //  4. Already saved check
         boolean alreadyExists = savedMatchRepository
                 .findByUserIdAndMatchedUserId(userId, matchedUserId)
                 .isPresent();
@@ -48,7 +48,7 @@ public class SavedMatchServiceImpl implements SavedMatchService {
             throw new BadRequestException("Match already saved");
         }
 
-        // ✅ 5. Save
+        //  5. Save
         SavedMatch savedMatch = SavedMatch.builder()
                 .user(user)
                 .matchedUser(matchedUser)
@@ -61,19 +61,19 @@ public class SavedMatchServiceImpl implements SavedMatchService {
     @Override
     public void removeMatch(Long userId, Long matchedUserId) {
 
-        // ✅ 1. Null validation
+        //  1. Null validation
         if (userId == null || matchedUserId == null) {
             throw new BadRequestException("UserId and MatchedUserId must not be null");
         }
 
-        // ✅ 2. Validate existence
+        // 2. Validate existence
         userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
         userRepository.findById(matchedUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("Matched user not found with id: " + matchedUserId));
 
-        // ✅ 3. Fetch saved match
+        //  3. Fetch saved match
         SavedMatch savedMatch = savedMatchRepository
                 .findByUserIdAndMatchedUserId(userId, matchedUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("Saved match not found"));
@@ -84,16 +84,16 @@ public class SavedMatchServiceImpl implements SavedMatchService {
     @Override
     public List<Long> getSavedMatches(Long userId) {
 
-        // ✅ 1. Null validation
+        //  1. Null validation
         if (userId == null) {
             throw new BadRequestException("UserId must not be null");
         }
 
-        // ✅ 2. Validate user exists
+        //  2. Validate user exists
         userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
-        // ✅ 3. Fetch safely
+        //  3. Fetch safely
         return savedMatchRepository.findByUserId(userId)
                 .stream()
                 .map(sm -> sm.getMatchedUser().getId())

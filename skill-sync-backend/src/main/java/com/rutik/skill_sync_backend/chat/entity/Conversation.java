@@ -7,9 +7,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-/**
- * JPA entity representing a Conversation.
- */
+
 @Entity
 @Table(
     name = "conversations",

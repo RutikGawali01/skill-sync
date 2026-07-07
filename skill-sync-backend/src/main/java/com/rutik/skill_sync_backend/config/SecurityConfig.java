@@ -44,7 +44,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
 
-                        // ✅ Allow USER role also
+                        //  Allow USER role also
                         .requestMatchers("/api/users/**").hasAnyRole("USER", "ADMIN")
 
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
@@ -52,20 +52,20 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
 
-                // 🔥 RATE LIMIT & JWT FILTERS
-                .addFilterBefore(rateLimitFilter, JwtAuthFilter.class)
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                //  RATE LIMIT & JWT FILTERS
+                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(jwtAuthFilter, RateLimitFilter.class);
 
         return http.build();
     }
 
-    // 🔐 PASSWORD ENCODER
+    //  PASSWORD ENCODER
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // 🔐 AUTH MANAGER
+    //  AUTH MANAGER
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration config) throws Exception {

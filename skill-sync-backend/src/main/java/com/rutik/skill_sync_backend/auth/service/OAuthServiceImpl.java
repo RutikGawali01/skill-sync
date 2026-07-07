@@ -18,19 +18,19 @@ public class OAuthServiceImpl implements OAuthService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
-    private final GoogleTokenVerifier googleTokenVerifier; // ✅ FIXED
+    private final GoogleTokenVerifier googleTokenVerifier; //  FIXED
 
     @Override
     public AuthResponse handleGoogleLogin(GoogleAuthRequest request) {
 
-        // ✅ VERIFY TOKEN
+        //  VERIFY TOKEN
         GoogleIdToken.Payload payload =
                 googleTokenVerifier.verify(request.getIdToken());
 
         String email = payload.getEmail();
         String name = (String) payload.getOrDefault("name", "User");
 
-        // ✅ CHECK EMAIL VERIFIED
+        // CHECK EMAIL VERIFIED
         if (!Boolean.TRUE.equals(payload.getEmailVerified())) {
             throw new RuntimeException("Email not verified by Google");
         }
@@ -38,7 +38,7 @@ public class OAuthServiceImpl implements OAuthService {
         User user = userRepository.findByEmail(email)
                 .map(existingUser -> {
 
-                    // ✅ PROVIDER CHECK
+                    //  PROVIDER CHECK
                     if (existingUser.getProvider() != AuthProvider.GOOGLE) {
                         throw new RuntimeException("Please login using email/password");
                     }
@@ -46,7 +46,7 @@ public class OAuthServiceImpl implements OAuthService {
                     return existingUser;
                 })
                 .orElseGet(() -> {
-                    // ✅ CREATE NEW USER
+                    // CREATE NEW USER
                     User newUser = User.builder()
                             .email(email)
                             .name(name)
@@ -60,7 +60,7 @@ public class OAuthServiceImpl implements OAuthService {
                     return userRepository.save(newUser);
                 });
 
-        // 🔥 NEW SESSION (invalidate old tokens)
+        //  NEW SESSION (invalidate old tokens)
         user.setTokenVersion(user.getTokenVersion() + 1);
         userRepository.save(user);
 

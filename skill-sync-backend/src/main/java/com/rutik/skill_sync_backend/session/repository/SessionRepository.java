@@ -138,7 +138,7 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
         JOIN FETCH s.skill sk
         WHERE (s.requester.id = :user1Id AND s.provider.id = :user2Id)
            OR (s.requester.id = :user2Id AND s.provider.id = :user1Id)
-        ORDER BY s.startTime DESC
+        ORDER BY s.startTime ASC
     """)
     List<Session> findSessionsBetweenUsers(@Param("user1Id") Long user1Id, @Param("user2Id") Long user2Id);
 }

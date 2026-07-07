@@ -5,9 +5,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-/**
- * Request DTO to send a chat message.
- */
 @Getter
 @Setter
 @NoArgsConstructor

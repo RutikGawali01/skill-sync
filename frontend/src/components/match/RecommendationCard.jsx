@@ -19,6 +19,7 @@
  */
 
 import { memo, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Star, Award, CalendarPlus, Eye, BookOpen, GraduationCap } from 'lucide-react';
 import MatchScore from './MatchScore';
@@ -85,6 +86,7 @@ const SkillPill = ({ name, variant }) => {
 
 // ── Card ──────────────────────────────────────────────────────────────────────
 const RecommendationCard = memo(({ recommendation, index, onViewDetails, onRequestSession }) => {
+  const navigate = useNavigate();
   const { candidate, matchScore, recommendationReason } = recommendation;
 
   const name              = candidate?.name ?? 'Unknown';
@@ -123,8 +125,9 @@ const RecommendationCard = memo(({ recommendation, index, onViewDetails, onReque
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay: index * 0.06 }}
-      whileHover={{ y: -5 }}
-      className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 shadow-sm hover:shadow-[0_16px_36px_-8px_rgba(124,58,237,0.18)] transition-all duration-300 flex flex-col gap-3 cursor-pointer group"
+      whileHover={{ y: -5, scale: 1.01 }}
+      onClick={() => onViewDetails?.(recommendation)}
+      className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 shadow-sm hover:shadow-[0_16px_36px_-8px_rgba(124,58,237,0.18)] hover:border-violet-300 dark:hover:border-violet-800/80 transition-all duration-300 flex flex-col gap-3 cursor-pointer group"
     >
       {/* ── Header: avatar + name + score ring ── */}
       <div className="flex items-start justify-between gap-2">
@@ -258,17 +261,23 @@ const RecommendationCard = memo(({ recommendation, index, onViewDetails, onReque
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.97 }}
-          onClick={() => onViewDetails?.(recommendation)}
-          aria-label={`View details for ${name}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (candidate?.id) navigate(`/users/${candidate.id}`);
+          }}
+          aria-label={`View profile for ${name}`}
           className="flex-1 py-2 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-xl font-semibold text-sm transition-colors flex items-center justify-center gap-2 border border-gray-100 dark:border-gray-700"
         >
           <Eye className="w-3.5 h-3.5" />
-          View
+          View Profile
         </motion.button>
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.97 }}
-          onClick={() => onRequestSession?.(candidate)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRequestSession?.(candidate);
+          }}
           aria-label={`Request session with ${name}`}
           className="flex-1 py-2 bg-violet-50 dark:bg-violet-950/50 hover:bg-violet-100 dark:hover:bg-violet-900/50 text-violet-600 dark:text-violet-400 rounded-xl font-semibold text-sm transition-colors flex items-center justify-center gap-2"
         >

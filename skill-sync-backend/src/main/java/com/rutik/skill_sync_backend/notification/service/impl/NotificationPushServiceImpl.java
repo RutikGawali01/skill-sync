@@ -9,15 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-/**
- * Implementation of NotificationPushService.
- *
- * Responsibilities:
- * ─────────────────
- * 1. Only handles push delivery of notifications and badge counts.
- * 2. Absolutely no database dependencies (no repositories injected).
- * 3. Log pushes using SLF4J.
- */
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -29,10 +21,10 @@ public class NotificationPushServiceImpl implements NotificationPushService {
     @Override
     public void pushNotification(Long userId, NotificationResponseDto dto) {
         if (userId == null || dto == null) {
-            log.warn("⚠️ Cannot push notification: userId or payload is null");
+            log.warn(" Cannot push notification: userId or payload is null");
             return;
         }
-        log.info("🚀 Pushing notification ID {} to user ID {} via WebSocket", dto.getId(), userId);
+        log.info(" Pushing notification ID {} to user ID {} via WebSocket", dto.getId(), userId);
         NotificationSocketDto socketDto = notificationMapper.toSocketDto(dto);
         webSocketGateway.sendNotification(userId.toString(), socketDto);
     }
@@ -40,10 +32,10 @@ public class NotificationPushServiceImpl implements NotificationPushService {
     @Override
     public void pushUnreadCount(Long userId, long count) {
         if (userId == null) {
-            log.warn("⚠️ Cannot push unread count: userId is null");
+            log.warn("️ Cannot push unread count: userId is null");
             return;
         }
-        log.info("🚀 Pushing unread count ({}) to user ID {} via WebSocket", count, userId);
+        log.info(" Pushing unread count ({}) to user ID {} via WebSocket", count, userId);
         webSocketGateway.sendUnreadCount(userId.toString(), count);
     }
 }

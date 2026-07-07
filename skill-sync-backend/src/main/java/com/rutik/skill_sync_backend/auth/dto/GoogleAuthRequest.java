@@ -11,5 +11,5 @@ import lombok.Setter;
 public class GoogleAuthRequest {
 
     @NotBlank
-    private String idToken; // 🔥 FIXED (not email/name)
+    private String idToken;
 }

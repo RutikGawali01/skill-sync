@@ -80,3 +80,14 @@ export const getExploreSkills = async ({ page = 0, size = 10, search = '', sortB
   return response.data.data;
 };
 
+/**
+ * Fetch a target user's skills by userId.
+ * Backend: GET /api/users/skills/user/{userId}
+ * @param {string|number} userId
+ * @returns {Promise<UserSkillResponseDTO[]>}
+ */
+export const getUserSkillsByUserId = async (userId) => {
+  const response = await api.get(`/users/skills/user/${userId}`);
+  return response.data.data;
+};
+

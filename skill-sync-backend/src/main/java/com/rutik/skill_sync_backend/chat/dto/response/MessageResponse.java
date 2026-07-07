@@ -6,9 +6,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-/**
- * DTO representing a Message response.
- */
+
 @Getter
 @Setter
 @NoArgsConstructor

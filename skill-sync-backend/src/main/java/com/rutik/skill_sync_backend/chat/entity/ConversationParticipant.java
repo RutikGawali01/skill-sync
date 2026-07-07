@@ -6,9 +6,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-/**
- * JPA entity representing a participant in a Conversation.
- */
+
 @Entity
 @Table(
     name = "conversation_participants",

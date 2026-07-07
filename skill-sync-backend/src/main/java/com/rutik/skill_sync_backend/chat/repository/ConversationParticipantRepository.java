@@ -12,27 +12,14 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Repository interface for ConversationParticipant entity.
- */
+
 @Repository
 public interface ConversationParticipantRepository extends JpaRepository<ConversationParticipant, Long> {
 
-    /**
-     * Find a participant by conversation ID and user ID if not soft-deleted.
-     *
-     * @param conversationId the conversation ID
-     * @param userId the user ID
-     * @return an Optional of ConversationParticipant
-     */
+
     Optional<ConversationParticipant> findByConversationIdAndUserIdAndDeletedFalse(Long conversationId, Long userId);
 
-    /**
-     * Find all active (not soft-deleted) participants in a conversation with user fetched.
-     *
-     * @param conversationId the conversation ID
-     * @return list of ConversationParticipants
-     */
+
     @Query("""
         SELECT cp FROM ConversationParticipant cp
         JOIN FETCH cp.user u
@@ -41,14 +28,7 @@ public interface ConversationParticipantRepository extends JpaRepository<Convers
     """)
     List<ConversationParticipant> findByConversationIdAndDeletedFalse(@Param("conversationId") Long conversationId);
 
-    /**
-     * Find all conversation participations for a user, using fetch joins to avoid N+1 queries.
-     *
-     * @param userId the user ID
-     * @param archived filter by archived status
-     * @param pageable pagination details
-     * @return page of ConversationParticipants
-     */
+
     @Query(value = """
         SELECT cp FROM ConversationParticipant cp
         JOIN FETCH cp.conversation c
@@ -71,13 +51,7 @@ public interface ConversationParticipantRepository extends JpaRepository<Convers
         Pageable pageable
     );
 
-    /**
-     * Find a direct conversation between two users.
-     *
-     * @param userId1 the first user ID
-     * @param userId2 the second user ID
-     * @return an Optional of Conversation
-     */
+
     @Query("""
         SELECT cp1.conversation FROM ConversationParticipant cp1
         JOIN ConversationParticipant cp2 ON cp1.conversation.id = cp2.conversation.id
@@ -90,18 +64,10 @@ public interface ConversationParticipantRepository extends JpaRepository<Convers
     """)
     Optional<Conversation> findDirectConversation(@Param("userId1") Long userId1, @Param("userId2") Long userId2);
 
-    /**
-     * Check if a participant exists in a conversation.
-     *
-     * @param conversationId the conversation ID
-     * @param userId the user ID
-     * @return true if participant exists and is not soft-deleted
-     */
+
     boolean existsByConversationIdAndUserIdAndDeletedFalse(Long conversationId, Long userId);
 
-    /**
-     * Find all conversation IDs for a user where the participation is active.
-     */
+
     @Query("SELECT cp.conversation.id FROM ConversationParticipant cp WHERE cp.user.id = :userId AND cp.deleted = false")
     List<Long> findConversationIdsByUserId(@Param("userId") Long userId);
 }
