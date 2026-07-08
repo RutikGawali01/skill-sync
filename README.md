@@ -43,74 +43,51 @@ Built using **Spring Boot, React, PostgreSQL, Redis, WebSocket, and Docker**, th
 
 Secure authentication using JWT, Google OAuth, Refresh Token Rotation, role-based authorization, protected APIs, and Spring Security best practices.
 
----
-
 ## 👤 User Profile Management
 
 Create and manage user profiles, teaching preferences, learning interests, skills, and personal availability.
-
----
 
 ## 🧠 Skill Management
 
 Users can offer skills, request skills to learn, organize them into categories, and define proficiency levels.
 
----
-
 ## 🤖 AI Skill Verification
 
 AI-assisted verification validates submitted skills to improve user credibility, platform trust, and recommendation quality.
-
----
 
 ## 🎯 Recommendation Engine
 
 Recommends the most relevant learning partners based on skills, interests, and mutual learning opportunities.
 
----
-
 ## 📅 Availability & Scheduling
 
 Manage weekly availability, detect scheduling conflicts, and seamlessly book learning sessions.
-
----
 
 ## 🎓 Session Management
 
 Complete session lifecycle including **Pending**, **Accepted**, **Rejected**, **Completed**, and **Cancelled** states.
 
----
-
 ## 💬 Real-Time Chat
 
 Instant messaging between matched users using WebSocket and STOMP after session acceptance.
-
----
 
 ## 🔔 Real-Time Notifications
 
 Receive live updates for session requests, chat messages, recommendations, and important platform activities.
 
----
-
 ## ⭐ Review & Trust System
 
 Build reputation through ratings, reviews, and an automated trust score after completed learning sessions.
 
----
-
 ## 🚦 API Rate Limiting
 
 Protects backend APIs against abuse using Redis-backed request throttling for improved reliability and security.
-
----
 
 ## ⚡ Performance Optimization
 
 Improves application performance through Redis caching, optimized queries, pagination, and efficient API responses.
 
 ---
-
 # 🛠️ Technology Stack
 
 ### Backend
