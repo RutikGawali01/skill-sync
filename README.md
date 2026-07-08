@@ -1,193 +1,150 @@
-# Skill Sync - Skill Exchange Platform 
+# 🚀 Skill Sync — Production-Ready Skill Exchange Platform
 
-A production-grade full-stack Skill Exchange Platform where users can **teach skills, learn from others, get matched intelligently, schedule sessions, and build trust through ratings & reviews**.
+<p align="center">
 
-This project is currently **under active development** 🚧 and new features are continuously being added and improved.
+![Java](https://img.shields.io/badge/Java-17-orange?style=for-the-badge\&logo=openjdk)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-6DB33F?style=for-the-badge\&logo=springboot)
+![React](https://img.shields.io/badge/React-Vite-61DAFB?style=for-the-badge\&logo=react)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge\&logo=postgresql)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge\&logo=redis)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge\&logo=docker)
+![WebSocket](https://img.shields.io/badge/WebSocket-Real--Time-success?style=for-the-badge)
+![License](https://img.shields.io/badge/License-MIT-brightgreen?style=for-the-badge)
 
-The platform focuses on:
+</p>
 
-* Real-world system design
-* Scalable backend architecture
-* Clean code practices
-* Intelligent matching systems
-* AI-powered verification
+A **production-grade full-stack Skill Exchange Platform** that enables users to **teach skills, learn from others, receive intelligent recommendations, schedule sessions, communicate in real time, and build trust through AI-powered verification and reviews.**
+
+Built using **Spring Boot, React, PostgreSQL, Redis, WebSocket, and Docker**, the project follows **clean architecture, scalable backend design, enterprise security practices, and modern software engineering principles**.
 
 ---
 
-# 🚧 Project Status
+# ✨ Key Highlights
 
-## Current Status
-
-- ✅ Core backend architecture completed
-- ✅ Authentication system implemented
-- ✅ Skill management system implemented
-- ✅ Availability scheduling system integrated
-- ✅ Session workflow implemented
-- ✅ Frontend integration in progress
-- ✅ AI-powered skill verification system added
-
-## 🚀 Currently Working On
-
-- Advanced matching engine
-- Recommendation system
-- Real-time chat
-- Notification system
-- Gamification
-- Fraud detection
+* 🔐 Secure JWT Authentication with Refresh Token Rotation
+* 🔑 Google OAuth 2.0 Authentication
+* 🤖 AI-Powered Skill Verification
+* 🎯 Intelligent Recommendation Engine
+* 💬 Real-Time Chat using WebSocket
+* 🔔 Real-Time Notifications
+* 📅 Smart Availability & Session Scheduling
+* ⭐ Review & Trust Score System
+* 🚦 Redis-Based API Rate Limiting
+* ⚡ Redis Caching for Performance
+* 🐳 Dockerized Application
+* 🗄️ Flyway Database Versioning
+* 🛡️ Enterprise-Level Spring Security
 
 ---
 
 # 🌟 Features
 
-## 🔐 Authentication & Authorization
+## 🔐 Authentication & Security
 
-* JWT Authentication
-* Secure Login & Registration
-* Role-based access control
-* Google OAuth
+Secure authentication using JWT, Google OAuth, Refresh Token Rotation, role-based authorization, protected APIs, and Spring Security best practices.
 
 ---
 
 ## 👤 User Profile Management
 
-* User bio & profile
-* Availability scheduling
-* Learning preferences
-* Teaching preferences
+Create and manage user profiles, teaching preferences, learning interests, skills, and personal availability.
 
 ---
 
 ## 🧠 Skill Management
 
-Users can:
-
-* Offer skills
-* Request skills to learn
-* Set skill proficiency levels
-* Add categories & descriptions
+Users can offer skills, request skills to learn, organize them into categories, and define proficiency levels.
 
 ---
 
-## 🤖 AI-Powered Skill Verification System
+## 🤖 AI Skill Verification
 
-Integrated AI-based verification system to improve platform trust and skill authenticity.
-
-### Verification Features
-
-* AI-assisted skill validation
-* Content-based verification checks
-* Trust enhancement system
-* Future-ready recommendation integration
-
-This feature helps reduce fake claims and improves matching quality.
+AI-assisted verification validates submitted skills to improve user credibility, platform trust, and recommendation quality.
 
 ---
 
-## 🔍 Intelligent Matching Engine
+## 🎯 Recommendation Engine
 
-### Matching Versions
-
-* ✅ Basic Matching
-* ✅ Mutual Skill Exchange
-* 🔄 Graph-based Matching (In Progress)
-* 🔄 Ranking & Recommendation Engine
-
-### Example
-
-```text id="c9n2zr"
-User A teaches React
-User B teaches Spring Boot
-
-→ Mutual exchange match generated
-```
+Recommends the most relevant learning partners based on skills, interests, and mutual learning opportunities.
 
 ---
 
-## 📅 Availability & Scheduling System
+## 📅 Availability & Scheduling
 
-* Weekly availability slots
-* Time slot management
-* Conflict detection
-* Booking workflow
+Manage weekly availability, detect scheduling conflicts, and seamlessly book learning sessions.
 
 ---
 
 ## 🎓 Session Management
 
-Session states:
-
-* PENDING
-* ACCEPTED
-* REJECTED
-* COMPLETED
-* CANCELLED
+Complete session lifecycle including **Pending**, **Accepted**, **Rejected**, **Completed**, and **Cancelled** states.
 
 ---
 
-## ⭐ Trust & Review System
+## 💬 Real-Time Chat
 
-* Ratings & feedback
-* Trust score calculation
-* Reputation system
+Instant messaging between matched users using WebSocket and STOMP after session acceptance.
 
 ---
 
-## 💬 Communication System
+## 🔔 Real-Time Notifications
 
-* Pre-session communication
-* Real-time chat (In Progress)
-* Notifications & reminders
+Receive live updates for session requests, chat messages, recommendations, and important platform activities.
 
 ---
 
-## 🏆 Gamification
+## ⭐ Review & Trust System
 
-* XP points
-* Levels
-* Achievement badges
+Build reputation through ratings, reviews, and an automated trust score after completed learning sessions.
 
 ---
 
-# 🛠️ Tech Stack
+## 🚦 API Rate Limiting
 
-## Backend
+Protects backend APIs against abuse using Redis-backed request throttling for improved reliability and security.
+
+---
+
+## ⚡ Performance Optimization
+
+Improves application performance through Redis caching, optimized queries, pagination, and efficient API responses.
+
+---
+
+# 🛠️ Technology Stack
+
+### Backend
 
 * Java 17
 * Spring Boot
 * Spring Security
-* JWT
 * Spring Data JPA (Hibernate)
-* PostgreSQL / MySQL
+* JWT Authentication
+* OAuth 2.0
+* PostgreSQL
+* Redis
+* Flyway
+* WebSocket (STOMP)
+* Maven
 * Lombok
 * ModelMapper
 
-## Frontend
+### Frontend
 
-* React + Vite
+* React
+* Vite
 * Redux Toolkit
-* Mantine UI
 * React Router
+* Mantine UI
 * Axios
 
----
+### DevOps & Tools
 
-# 🧱 System Architecture
-
-```text id="jz7ypd"
-User
-   ↓
-UserSkill
-   ↓
-AI Verification
-   ↓
-Matching Engine
-   ↓
-Scheduling System
-   ↓
-Session Management
-   ↓
-Review & Trust System
-```
+* Docker
+* Git & GitHub
+* Postman
+* IntelliJ IDEA
+* VS Code
 
 ---
 
@@ -195,189 +152,144 @@ Review & Trust System
 
 ## Backend
 
-```text id="x7r4y9"
+```text
 backend/
- └── src/main/java/com/skillxchange/
-      ├── config/
-      ├── common/
-      ├── auth/
-      ├── user/
-      ├── skill/
-      ├── match/
-      ├── session/
-      ├── review/
-      ├── notification/
-      ├── chat/
-      ├── admin/
-      └── gamification/
+└── src/main/java/com/skillxchange/
+    ├── auth/
+    ├── user/
+    ├── skill/
+    ├── recommendation/
+    ├── availability/
+    ├── session/
+    ├── review/
+    ├── notification/
+    ├── chat/
+    ├── admin/
+    ├── common/
+    └── config/
 ```
-
----
 
 ## Frontend
 
-```text id="c9zv12"
+```text
 frontend/
- └── src/
-      ├── components/
-      ├── pages/
-      ├── redux/
-      ├── services/
-      ├── hooks/
-      ├── layouts/
-      └── utils/
+└── src/
+    ├── components/
+    ├── pages/
+    ├── redux/
+    ├── services/
+    ├── hooks/
+    ├── layouts/
+    └── utils/
 ```
 
 ---
 
-# 🔥 Key Engineering Highlights
+# 💻 Engineering Practices
 
-## ✅ Clean Architecture
-
-* Layered architecture
-* DTO-based communication
-* Modular feature-based structure
-* Service abstraction
-
-## ✅ Security Best Practices
-
-* JWT authentication
-* Password encryption
-* Protected APIs
-* Input validation
-
-## ✅ Scalable Design
-
-* Normalized database design
-* Feature-wise modularity
-* Future microservice-ready architecture
-* Optimized matching workflows
-
-## ✅ Real-world Backend Practices
-
-* Global exception handling
-* Logging using SLF4J
-* Validation using `@Valid`
-* Enum-based state management
+* Clean Layered Architecture
+* Feature-Based Modular Design
+* DTO-Based Communication
+* RESTful API Design
+* Global Exception Handling
+* Bean Validation (`@Valid`)
+* Secure Authentication & Authorization
+* Enum-Based State Management
+* SLF4J Logging
+* Reusable Components
+* Production-Ready Code Structure
+* Scalable Backend Design
 
 ---
 
 # 🚀 Getting Started
 
-## 1️⃣ Clone Repository
+## 1. Clone the Repository
 
-```bash id="qqz9xf"
+```bash
 git clone https://github.com/RutikGawali01/skill-sync.git
 ```
 
 ---
 
-## 2️⃣ Backend Setup
+## 2. Backend Setup
 
-```bash id="vphj0f"
+```bash
 cd backend
 ```
 
-Configure database in:
+Configure your database and Redis credentials inside:
 
-```text id="rzh7z5"
+```text
 application.yml
 ```
 
-Run backend:
+Run the backend:
 
-```bash id="9vhk6s"
+```bash
 ./mvnw spring-boot:run
 ```
 
-Backend runs on:
+Backend URL
 
-```text id="m4j22p"
+```text
 http://localhost:8080
 ```
 
 ---
 
-## 3️⃣ Frontend Setup
+## 3. Frontend Setup
 
-```bash id="fr8k8g"
+```bash
 cd frontend
-```
-
-Install dependencies:
-
-```bash id="3yq6zz"
 npm install
-```
-
-Run frontend:
-
-```bash id="yt0pr9"
 npm run dev
 ```
 
-Frontend runs on:
+Frontend URL
 
-```text id="qk2xxy"
+```text
 http://localhost:5173
 ```
 
 ---
 
-# 📌 Future Roadmap
+# 🎯 What This Project Demonstrates
 
-## Upcoming Features
+This project showcases practical experience in:
 
-* Graph-based matching engine
-* AI recommendations
-* Real-time notifications
-* WebSocket chat system
-* Video call integration
-* Fraud detection system
-* Leaderboards & achievements
-* Mobile application
-
----
-
-# 📚 What This Project Demonstrates
-
-This project showcases:
-
-* Full-stack development
-* Scalable system design
-* Backend engineering
-* Authentication & authorization
-* Scheduling systems
-* AI-assisted workflows
-* Clean architecture principles
-* Real-world project structuring
-
----
-
-# 🤝 Contributing
-
-Contributions are welcome!
-
-```text id="x2h9ka"
-Fork → Create Branch → Commit → Push → Pull Request
-```
+* Enterprise Backend Development
+* Full-Stack Application Development
+* Secure Authentication & Authorization
+* Real-Time Communication
+* Recommendation Systems
+* AI Integration
+* Redis Integration
+* Performance Optimization
+* REST API Development
+* Scalable Application Design
+* Clean Architecture
+* Modern Software Engineering Practices
 
 ---
 
 # 👨‍💻 Author
 
-**Rutik Gawali**
+### Rutik Gawali
 
-Aspiring Full Stack Java Developer focused on:
+**Aspiring Full-Stack Java Developer** passionate about building scalable, secure, and production-ready applications.
 
-* Spring Boot
-* React
-* System Design
-* Scalable Backend Engineering
-* AI-integrated Applications
+### Connect with Me
+
+* 💼 LinkedIn: www.linkedin.com/in/rutik-gawali-35094a32a
+* 💻 GitHub: https://github.com/RutikGawali01
 
 ---
 
 # ⭐ Support
 
-If you like this project, consider giving it a ⭐ on GitHub!
+If you found this project helpful or interesting, please consider giving it a **⭐ Star** on GitHub.
+
+It motivates me to continue building high-quality open-source projects and helps others discover this repository.
+
+**Thank you for visiting! 🚀**
