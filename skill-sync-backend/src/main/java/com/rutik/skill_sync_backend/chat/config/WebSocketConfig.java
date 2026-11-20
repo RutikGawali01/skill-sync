@@ -22,7 +22,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final ChatHandshakeInterceptor chatHandshakeInterceptor;
     private final ChatPrincipalHandshakeHandler chatPrincipalHandshakeHandler;
 
-    @Value("${app.websocket.allowed-origins:http://localhost:5173}")
+    @Value("${app.websocket.allowed-origins}")
     private String[] allowedOrigins;
 
 
