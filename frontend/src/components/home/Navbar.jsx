@@ -12,7 +12,6 @@ import useNotificationSocket from '../../hooks/useNotificationSocket';
 const guestLinks  = [
   { label: 'Home',           path: '/' },
   { label: 'Explore Skills', path: '/skills' },
-  { label: 'Community',      path: '/community' },
   { label: 'Features',       path: '/features' },
   { label: 'Login',          path: '/login' },
 ];
@@ -20,7 +19,6 @@ const guestLinks  = [
 const authedLinks = [
   { label: 'Home',           path: '/' },
   { label: 'Explore Skills', path: '/skills' },
-  { label: 'Community',      path: '/community' },
   { label: 'Availability',   path: '/availability', icon: CalendarDays },
   { label: 'Sessions',       path: '/sessions',     icon: CalendarClock },
   { label: 'Reviews',        path: '/reviews',      icon: Star },
