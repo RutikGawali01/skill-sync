@@ -1,3 +1,31 @@
+spring:
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+    show-sql: true
+
 logging:
+
   level:
+
     com.rutik.skill_sync_backend: DEBUG
+
+    org.springframework.messaging: TRACE
+
+    org.springframework.web.socket: TRACE
+
+    org.springframework.security.messaging: TRACE
+
+app:
+
+  seed:
+
+    enabled: true
+
+    force: false
+
+cookie:
+
+  secure: false

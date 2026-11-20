@@ -37,7 +37,6 @@ public class OAuthServiceImpl implements OAuthService {
 
         User user = userRepository.findByEmail(email)
                 .map(existingUser -> {
-
                     //  PROVIDER CHECK
                     if (existingUser.getProvider() != AuthProvider.GOOGLE) {
                         throw new RuntimeException("Please login using email/password");

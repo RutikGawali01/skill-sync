@@ -2,7 +2,7 @@ import axios from 'axios';
 import { tokenService } from '../utils/tokenUtils';
 
 const api = axios.create({
-  baseURL: '/api',          // Vite proxy forwards to http://localhost:8080/api
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   headers: { 'Content-Type': 'application/json' },
   withCredentials: true,    // Required: sends HttpOnly refreshToken cookie on every request
 });

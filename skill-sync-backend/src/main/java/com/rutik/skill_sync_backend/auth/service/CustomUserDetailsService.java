@@ -13,6 +13,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+//required because Spring Security itself doesn't know how to find your users from your database.
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;

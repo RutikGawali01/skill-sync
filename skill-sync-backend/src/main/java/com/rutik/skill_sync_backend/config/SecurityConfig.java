@@ -44,6 +44,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
 
+                        // Actuator: health & info are public (used by load balancers / uptime monitors)
+                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                        // All other actuator endpoints require ADMIN
+                        .requestMatchers("/actuator/**").hasRole("ADMIN")
+
                         //  Allow USER role also
                         .requestMatchers("/api/users/**").hasAnyRole("USER", "ADMIN")
 

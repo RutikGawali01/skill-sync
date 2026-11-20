@@ -72,7 +72,6 @@ const useNotificationSocket = () => {
           if (!isActive.current) { disconnectWebSocket(); return; }
           retryCount.current = 0; // reset on successful connect
           dispatch(setWsConnected(true));
-          console.info('[useNotificationSocket] WebSocket connected');
         },
 
         onNotification: (payload) => {
@@ -107,11 +106,8 @@ const useNotificationSocket = () => {
          * The service also calls onDisconnect afterwards, so we only need to
          * log here — reconnect is handled by onDisconnect → scheduleRetry.
          */
-        onError: (errorType, frame) => {
-          console.warn(
-            `[useNotificationSocket] STOMP error (${errorType}):`,
-            frame?.headers?.message || frame
-          );
+        onError: () => {
+          // reconnect handled by onDisconnect → scheduleRetry
         },
       });
     };
@@ -122,18 +118,10 @@ const useNotificationSocket = () => {
       retryCount.current += 1;
 
       if (retryCount.current > MAX_RETRIES) {
-        console.warn(
-          `[useNotificationSocket] Max retries (${MAX_RETRIES}) reached — ` +
-          'stopping reconnect. Refresh the page to reconnect.'
-        );
         return;
       }
 
       const delay = BASE_RETRY_MS * retryCount.current;
-      console.info(
-        `[useNotificationSocket] Reconnecting in ${delay}ms ` +
-        `(attempt ${retryCount.current}/${MAX_RETRIES})…`
-      );
 
       retryTimer.current = setTimeout(connect, delay);
     };

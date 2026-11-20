@@ -91,7 +91,6 @@ const PublicProfilePage = () => {
         loadTrustScore(userId);
 
       } catch (err) {
-        console.error("Error loading public profile:", err);
         setError(err?.response?.data?.message || 'Failed to load profile. Please make sure the user exists.');
         setLoadingProfile(false);
         setLoadingSkills(false);

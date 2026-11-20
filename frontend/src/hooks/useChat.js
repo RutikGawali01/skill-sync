@@ -79,7 +79,6 @@ const useChat = () => {
           dispatch(setConvHasMore(!last));
         }
       } catch (err) {
-        console.error('Failed to fetch conversations:', err);
         dispatch(setConvError(err?.response?.data?.message || 'Failed to load conversations'));
       } finally {
         dispatch(setConvLoading(false));
@@ -117,7 +116,6 @@ const useChat = () => {
           }
         }
       } catch (err) {
-        console.error('Failed to load conversation details:', err);
         mantineNotify.show({
           title: 'Error',
           message: err?.response?.data?.message || 'Failed to load chat history',
@@ -142,8 +140,8 @@ const useChat = () => {
         dispatch(setChatPage(chatPage + 1));
         dispatch(setChatHasMore(!last));
       }
-    } catch (err) {
-      console.error('Failed to fetch older messages:', err);
+    } catch {
+      // silently ignore — UI already shows stale data
     } finally {
       dispatch(setLoadingMessages(false));
     }
@@ -189,8 +187,7 @@ const useChat = () => {
           type,
           clientMessageId: clientMsgId,
         });
-      } catch (wsError) {
-        console.warn('WS send failed, falling back to REST:', wsError);
+      } catch {
         // Fallback to REST API call
         try {
           dispatch(setSendingMessage(true));
@@ -201,8 +198,7 @@ const useChat = () => {
             type,
             clientMsgId
           );
-        } catch (apiError) {
-          console.error('REST fallback send failed:', apiError);
+        } catch {
           // Mark optimistic message as failed/un-sent
           dispatch(
             updateMessageStatus({
@@ -227,12 +223,11 @@ const useChat = () => {
 
       try {
         send('/app/chat/read', { conversationId, messageId });
-      } catch (wsErr) {
-        console.warn('WS read receipt failed, falling back to REST:', wsErr);
+      } catch {
         try {
           await chatService.markAsRead(conversationId, messageId);
-        } catch (apiErr) {
-          console.error('REST read receipt failed:', apiErr);
+        } catch {
+          // silently ignore read receipt failures
         }
       }
     },

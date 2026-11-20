@@ -58,7 +58,6 @@ const RegisterForm = () => {
       setSuccess(true);
       setTimeout(() => navigate('/skills'), 1500);
     } catch (err) {
-      console.error('Register error:', err);
       setError(
         err?.response?.data?.message || 'Registration failed. Please try again.'
       );

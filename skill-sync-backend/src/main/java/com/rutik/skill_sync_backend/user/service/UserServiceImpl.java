@@ -147,10 +147,7 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
-    /**
-     * ✅ Calculate if profile is complete (boolean version)
-     * Used for quick checks (not percentage like repo)
-     */
+
     private boolean checkProfileCompletion(User user) {
 
         int totalFields = 10; // define what matters for MVP

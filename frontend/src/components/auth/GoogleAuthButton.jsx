@@ -12,11 +12,18 @@ let gisInitialised = false;
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 
-if (!GOOGLE_CLIENT_ID) {
-  console.error(
-    '[GoogleAuthButton]  VITE_GOOGLE_CLIENT_ID is undefined.\n'
-  );
-}
+/**
+ * This component is the frontend implementation of Google Authentication using Google Identity Services (GIS).
+ *  It is responsible for:
+
+*Loading and displaying the Google Sign-In button.
+*Receiving the Google ID Token after login.
+*Sending that token to your backend.
+*Receiving your application's JWT.
+*Saving the JWT.
+*Updating Redux.
+*  Redirecting the user. 
+ */
 
 
 const GoogleAuthButton = ({ label }) => {
@@ -46,18 +53,17 @@ const GoogleAuthButton = ({ label }) => {
   const handleCredentialResponse = useCallback(async (credentialResponse) => {
     setErrorRef.current('');
     try {
-      const res = await googleAuth(credentialResponse.credential);
+      const res = await googleAuth(credentialResponse.credential); /// google id token inside credentialresponse obj
       const { accessToken } = res.data.data;
       tokenService.set(accessToken);
       const user = decodeToken(accessToken);
       dispatchRef.current(setAuth({ token: accessToken, user }));
       navigateRef.current('/skills');
-    } catch (err) {
-      const msg = 'Google sign-in failed. Please try again.';
-      console.error('[GoogleAuthButton] OAuth error:', err);
-      setErrorRef.current(msg);
+    } catch {
+      setErrorRef.current('Google sign-in failed. Please try again.');
     }
   }, []);
+
   const initGIS = useCallback(() => {
     if (!containerRef.current || !window.google?.accounts?.id) return;
 
@@ -80,6 +86,7 @@ const GoogleAuthButton = ({ label }) => {
       width: containerRef.current.offsetWidth || 400,
     });
   }, [handleCredentialResponse, label]);
+  
 
   useEffect(() => {
     if (window.google?.accounts?.id) {

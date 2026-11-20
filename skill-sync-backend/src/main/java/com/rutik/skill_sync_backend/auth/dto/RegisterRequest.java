@@ -20,6 +20,8 @@ public class RegisterRequest {
     @Size(min = 6)
     private String password;
 
+
+    // optional
     private String bio;
 
 

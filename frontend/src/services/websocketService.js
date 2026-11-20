@@ -21,8 +21,8 @@ import { tokenService } from '../utils/tokenUtils';
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
-const WS_URL         = '/ws';   // Vite dev proxy → http://localhost:8080/ws
-const HEARTBEAT_MS   = 25_000;
+const WS_URL       = import.meta.env.VITE_WS_URL || '/ws';
+const HEARTBEAT_MS = 25_000;
 
 // ── Module-level state ────────────────────────────────────────────────────────
 
@@ -44,7 +44,6 @@ let dynamicSubscriptions = {};
 const buildSockJS = () => {
   const token = tokenService.get();
   if (!token) {
-    console.warn('[WebSocket] buildSockJS: no access token in storage — aborting connection');
     return new SockJS(WS_URL);
   }
   return new SockJS(`${WS_URL}?token=${encodeURIComponent(token)}`);
@@ -76,7 +75,6 @@ export const connectWebSocket = (callbacks = {}) => {
 
   const token = tokenService.get();
   if (!token) {
-    console.warn('[WebSocket] connectWebSocket: no access token in storage — aborting connection');
     return;
   }
 
@@ -87,7 +85,6 @@ export const connectWebSocket = (callbacks = {}) => {
     heartbeatOutgoing: HEARTBEAT_MS,
 
     onConnect: () => {
-      console.info('[WebSocket] Connected — subscribing to notification queues');
       onConnect?.();
 
       subscriptions.notifications = client.subscribe(
@@ -96,8 +93,8 @@ export const connectWebSocket = (callbacks = {}) => {
           try {
             const payload = JSON.parse(message.body);
             onNotification?.(payload);
-          } catch (err) {
-            console.warn('[WebSocket] Failed to parse notification frame:', err);
+          } catch {
+            // ignore malformed frame
           }
         }
       );
@@ -109,15 +106,14 @@ export const connectWebSocket = (callbacks = {}) => {
             const raw   = message.body?.trim();
             const count = parseInt(raw, 10);
             onUnreadCount?.(Number.isFinite(count) ? count : 0);
-          } catch (err) {
-            console.warn('[WebSocket] Failed to parse unread-count frame:', err);
+          } catch {
+            // ignore malformed frame
           }
         }
       );
 
       // Re-establish dynamic subscriptions upon reconnect
       Object.entries(dynamicSubscriptions).forEach(([dest, cb]) => {
-        console.info(`[WebSocket] Resubscribing to dynamic channel: ${dest}`);
         subscriptions[dest] = client.subscribe(dest, (message) => {
           try {
             const payload = JSON.parse(message.body);
@@ -130,21 +126,17 @@ export const connectWebSocket = (callbacks = {}) => {
     },
 
     onDisconnect: () => {
-      console.info('[WebSocket] Disconnected');
       subscriptions = {};
       onDisconnect?.();
     },
 
     onStompError: (frame) => {
-      const msg = frame.headers?.message || '(no message)';
-      console.error('[WebSocket] STOMP ERROR frame received:', msg);
       teardown();
       onError?.('stomp', frame);
       onDisconnect?.();
     },
 
-    onWebSocketError: (event) => {
-      console.error('[WebSocket] Transport-level error:', event);
+    onWebSocketError: () => {
       teardown();
       onDisconnect?.();
     },
@@ -212,7 +204,5 @@ export const publish = (destination, body) => {
       destination,
       body: JSON.stringify(body)
     });
-  } else {
-    console.warn('[WebSocket] Cannot publish: client not connected to destination', destination);
   }
 };
