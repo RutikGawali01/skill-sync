@@ -273,6 +273,7 @@ public class SkillServiceImpl implements SkillService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     @Cacheable(value = CacheNames.SKILL_CACHE, key = "'explore:' + #page + '-' + #size + '-' + (#search != null ? #search.trim() : '') + '-' + (#sortBy != null ? #sortBy : '') + '-' + (#sortDir != null ? #sortDir : '')", unless = "#result == null")
     public PageResponse<ExploreSkillResponseDto> getExploreSkills(
             int page,
@@ -337,9 +338,9 @@ public class SkillServiceImpl implements SkillService {
                 )
 
                 .category(
-                        userSkill.getSkill()
-                                .getCategory()
-                                .name()
+                        userSkill.getSkill() != null && userSkill.getSkill().getCategory() != null
+                                ? userSkill.getSkill().getCategory().name()
+                                : null
                 )
 
                 .skillId(
@@ -395,6 +396,9 @@ public class SkillServiceImpl implements SkillService {
 
 
     private List<String> getWantedSkills(User user) {
+        if (user == null || user.getUserSkills() == null) {
+            return new ArrayList<>();
+        }
 
         return new ArrayList<>(user.getUserSkills().stream()
 

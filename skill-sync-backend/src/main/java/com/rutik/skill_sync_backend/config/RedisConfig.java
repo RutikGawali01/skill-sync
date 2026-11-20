@@ -12,6 +12,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.Cache;
+import org.springframework.cache.annotation.CachingConfigurer;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.interceptor.CacheErrorHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
@@ -32,7 +36,7 @@ import java.util.Map;
 @Slf4j
 @Configuration
 @EnableCaching
-public class RedisConfig {
+public class RedisConfig implements CachingConfigurer {
 
     @Value("${spring.data.redis.host:localhost}")
     private String redisHost;
@@ -46,6 +50,8 @@ public class RedisConfig {
     @Value("${spring.data.redis.timeout:2000ms}")
     private String redisTimeout;
 
+    @Value("${spring.data.redis.ssl.enabled:false}")
+    private boolean redisSsl;
 
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
@@ -61,9 +67,15 @@ public class RedisConfig {
         Duration commandTimeout = parseTimeout(redisTimeout);
         log.info("Redis Command Timeout configured as: {} ms", commandTimeout.toMillis());
 
-        LettuceClientConfiguration clientConfig = LettuceClientConfiguration.builder()
-                .commandTimeout(commandTimeout)
-                .build();
+        LettuceClientConfiguration.LettuceClientConfigurationBuilder clientConfigBuilder = LettuceClientConfiguration.builder()
+                .commandTimeout(commandTimeout);
+
+        if (redisSsl || (redisHost != null && redisHost.contains("upstash.io")) || redisPort == 6380) {
+            log.info("Enabling SSL for Redis connection to {}", redisHost);
+            clientConfigBuilder.useSsl();
+        }
+
+        LettuceClientConfiguration clientConfig = clientConfigBuilder.build();
 
         return new LettuceConnectionFactory(redisStandaloneConfig, clientConfig);
     }
@@ -178,6 +190,35 @@ public class RedisConfig {
         return new LoggingCacheManager(redisCacheManager);
     }
 
+
+    @Override
+    public CacheErrorHandler errorHandler() {
+        return new CacheErrorHandler() {
+            @Override
+            public void handleCacheGetError(RuntimeException exception, Cache cache, Object key) {
+                log.warn("Redis Cache GET failed for key: '{}' in cache: '{}'. Falling back to database: {}",
+                        key, cache != null ? cache.getName() : "unknown", exception.getMessage());
+            }
+
+            @Override
+            public void handleCachePutError(RuntimeException exception, Cache cache, Object key, Object value) {
+                log.warn("Redis Cache PUT failed for key: '{}' in cache: '{}'. Skipping cache write: {}",
+                        key, cache != null ? cache.getName() : "unknown", exception.getMessage());
+            }
+
+            @Override
+            public void handleCacheEvictError(RuntimeException exception, Cache cache, Object key) {
+                log.warn("Redis Cache EVICT failed for key: '{}' in cache: '{}': {}",
+                        key, cache != null ? cache.getName() : "unknown", exception.getMessage());
+            }
+
+            @Override
+            public void handleCacheClearError(RuntimeException exception, Cache cache) {
+                log.warn("Redis Cache CLEAR failed for cache: '{}': {}",
+                        cache != null ? cache.getName() : "unknown", exception.getMessage());
+            }
+        };
+    }
 
     @Bean
     public CommandLineRunner verifyRedisConnection(RedisConnectionFactory connectionFactory) {
